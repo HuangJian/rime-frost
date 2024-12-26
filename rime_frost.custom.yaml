@@ -18,3 +18,14 @@ patch:
   # 添加自定义的 lua filter
   engine/filters/+:
     - lua_filter@*english_desc_filter    # 英文单词简单释义
+
+  # 万象语法模型，用于长句精确匹配
+  # https://github.com/amzxyz/RIME-LMDG
+  # 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
+  grammar:
+    language: amz-v3n2m1-zh-hans
+    collocation_max_length: 5
+    collocation_min_length: 2
+  translator/contextual_suggestions: true
+  translator/max_homophones: 7
+  translator/max_homographs: 7
