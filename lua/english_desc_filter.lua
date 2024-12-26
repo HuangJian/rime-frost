@@ -1,6 +1,6 @@
 local util = require("./util")
 
-local dict = nil
+local dict = {}
 
 local function parseLine(line)
     local w = {}
@@ -26,12 +26,12 @@ end
 local Filter = {}
 
 function Filter.init(env)
-    dict = {}
     local alphabet = 'abcdefghijklmnopqrstuvwxyz'
     for i = 1, alphabet:len(), 1 do
         dict[alphabet:sub(i, i)] = {}
     end
 
+    ---@diagnostic disable-next-line: undefined-global
     local fileAbsolutePath = rime_api.get_user_data_dir() .. "/lua/english_desc/english_desc.txt"
     local file = io.open(fileAbsolutePath, "r")
     if file == nil then return end
