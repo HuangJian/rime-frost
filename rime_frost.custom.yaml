@@ -1,0 +1,11 @@
+patch:
+
+  menu/page_size: 10                  # 候选项数
+
+  punctuator:
+    full_shape:
+      __include: symbols.custom:/punctuator/full_shape  # 从 symbols.custom.yaml 导入配置
+    half_shape:
+      __include: symbols.custom:/punctuator/half_shape  # 从 symbols.custom.yaml 导入配置
+    symbols:
+      __include: symbols.custom:/punctuator/symbols     # 从 symbols.custom.yaml 导入配置
