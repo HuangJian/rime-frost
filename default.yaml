@@ -10,17 +10,17 @@ config_version: '2024-07-12'
 schema_list:
   # 可以直接删除或注释不需要的方案，对应的 *.schema.yaml 方案文件也可以直接删除
   - schema: rime_frost             # 白霜拼音（全拼）
-  - schema: rime_frost_double_pinyin          # 自然码双拼
-  - schema: rime_frost_double_pinyin_mspy     # 微软双拼
-  - schema: rime_frost_double_pinyin_sogou    # 搜狗双拼
-  - schema: rime_frost_double_pinyin_flypy    # 小鹤双拼
+  # - schema: rime_frost_double_pinyin          # 自然码双拼
+  # - schema: rime_frost_double_pinyin_mspy     # 微软双拼
+  # - schema: rime_frost_double_pinyin_sogou    # 搜狗双拼
+  # - schema: rime_frost_double_pinyin_flypy    # 小鹤双拼
   # - schema: rime_frost_double_pinyin_abc      # 智能 ABC 双拼
   # - schema: rime_frost_double_pinyin_ziguang  # 紫光双拼
 
 
 # 菜单
 menu:
-  page_size: 8  # 候选词个数
+  page_size: 10  # 候选词个数
   # alternative_select_labels: [ ①, ②, ③, ④, ⑤, ⑥, ⑦, ⑧, ⑨, ⑩ ]  # 修改候选项标签
   # alternative_select_keys: ASDFGHJKL  # 如编码字符占用数字键，则需另设选字键
 
@@ -182,12 +182,12 @@ key_binder:
     - { when: composing, accept: Alt+Right, send: Shift+Right }
 
     # 翻页 - =
-    - { when: has_menu, accept: minus, send: Page_Up }
-    - { when: has_menu, accept: equal, send: Page_Down }
+    # - { when: has_menu, accept: minus, send: Page_Up }
+    # - { when: has_menu, accept: equal, send: Page_Down }
 
     # 翻页 , .
-    # - { when: paging, accept: comma, send: Page_Up }
-    # - { when: has_menu, accept: period, send: Page_Down }
+    - { when: paging, accept: comma, send: Page_Up }
+    - { when: has_menu, accept: period, send: Page_Down }
 
     # 翻页 [ ]
     # - { when: paging, accept: bracketleft, send: Page_Up }
