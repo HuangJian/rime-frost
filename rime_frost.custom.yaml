@@ -9,3 +9,8 @@ patch:
       __include: symbols.custom:/punctuator/half_shape  # 从 symbols.custom.yaml 导入配置
     symbols:
       __include: symbols.custom:/punctuator/symbols     # 从 symbols.custom.yaml 导入配置
+
+
+  # 添加自定义的 lua translator
+  'engine/processors/@before 1':        # 「符号配对」仅在「以词定字」之后执行，否则无法生效
+    lua_processor@*pairs                # 符号配对：自动补全配对的符号，并把光标左移到符号对内部
