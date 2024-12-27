@@ -19,7 +19,15 @@ patch:
 
   # 添加自定义的 lua filter
   engine/filters/+:
-    - lua_filter@*english_desc_filter    # 英文单词简单释义
+    - lua_filter@*english_desc_filter       # 英文单词简单释义
+
+  # 添加自定义的 lua translator
+  engine/translators/+:
+    - lua_translator@*help_menu             # 帮助菜单，/help 触发显示
+
+  key_binder/bindings/+:
+    - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选
+    - {when: has_menu,  accept: apostrophe, send: 3}        ## 单引号用于第3候选
 
   # 万象语法模型，用于长句精确匹配
   # https://github.com/amzxyz/RIME-LMDG
