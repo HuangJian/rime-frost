@@ -11,9 +11,11 @@ patch:
       __include: symbols.custom:/punctuator/symbols     # 从 symbols.custom.yaml 导入配置
 
 
-  # 添加自定义的 lua translator
+  # 添加自定义的 lua processors
   'engine/processors/@before 1':        # 「符号配对」仅在「以词定字」之后执行，否则无法生效
-    lua_processor@*pairs                # 符号配对：自动补全配对的符号，并把光标左移到符号对内部
+    lua_processor@*pairs                    # 符号配对：自动补全配对的符号，并把光标左移到符号对内部
+  'engine/processors/@before 2':        # 放最后不生效，那就继续往前堆吧
+    lua_processor@*slash                    # 连续斜杠：在候选项中交替切换
 
   # 添加自定义的 lua filter
   engine/filters/+:
