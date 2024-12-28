@@ -19,7 +19,7 @@ patch:
 
   # 添加自定义的 lua filter
   engine/filters/+:
-    - lua_filter@*english_desc_filter       # 英文单词简单释义
+    - lua_filter@*en2cn                     # 英文单词简单释义。内存占用~9MB
     - lua_filter@*cn_2en_pinyin             # 汉译英，并显示拼音。内存占用~17MB
 
   # 添加自定义的 lua translator

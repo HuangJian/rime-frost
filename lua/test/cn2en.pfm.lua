@@ -3,7 +3,7 @@ local Trie = require("../lib/trie")
 local cn2en = require("../cn_2en_pinyin")
 local luaunit = require("luaunit")
 
-Cn2enPfm = {}
+TestCn2enPfm = {}
 
 local function checkWordsWithTrie(trie)
     local testWords = { "不可数集", "数学", "测试", "算法", "不可数名词", "不在其位不谋其政" }
@@ -83,7 +83,7 @@ local function loadDataToTable()
     }
 end
 
-function Cn2enPfm.testDifferentKeyUnitPerformance()
+function TestCn2enPfm.testDifferentKeyUnitPerformance()
     print("==== performance of loading cn2en data ====")
 
     local tablePfm = loadDataToTable()
