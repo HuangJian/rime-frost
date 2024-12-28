@@ -1,19 +1,21 @@
 -- 自动补全配对的符号，并把光标左移到符号对内部
 -- ref: https://github.com/hchunhui/librime-lua/issues/84
 
+-- 如果失效，在 Accessibility 里删除 Squirrel，然后重新添加
+-- Accessibility 打开路径： System Preferences -> Security & Privacy -> Privacy -> Accessibility
+-- Squirrel.app 位置：/Library/Input Methods/Squirrel.app
 local function moveCursorToLeft()
-    -- 似乎 2023 年后失效，macOS 系统升级后受限制？
-    
-    -- local osascript = [[osascript -e '
-    --    tell application "System Events" to tell front process
-    --       key code 123 # Left Arrow
-    --    end tell
-    -- ']]
-    -- os.execute(osascript)
+    local osascript = [[osascript -e '
+        tell application "System Events" to tell front process
+            key code 123 # Left Arrow
+        end tell
+    ']]
+    os.execute(osascript)
 end
 
 local pairTable = {
     ["\""] = "\"",
+    ["`"] = "`",
     ["“"] = "”",
     ["'"] = "'",
     ["‘"] = "’",
@@ -33,13 +35,9 @@ local pairTable = {
     ["《"] = "》",
 };
 
-
 local pairs = {}
 
 function pairs.init(env)
-    -- local config = env.engine.schema.config
-    -- env.first_key = config:get_string('key_binder/select_first_character')
-    -- env.last_key = config:get_string('key_binder/select_last_character')
 end
 
 function pairs.func(key, env)
