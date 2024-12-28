@@ -1,3 +1,14 @@
+# 个性化扩展
+- [x] 候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
+- [x] 候选的英文单词，在注解里显示它们的简单中文翻译
+- [x] 多次按 <kbd>/</kbd> 键，切换选中其候选符号
+- [x] 自动符号配对，并移动光标到中间
+- [x] 输入 `/help` 显示帮助菜单
+- [ ] 输入 `/deploy` 重新部署
+- [ ] 快捷键 <kbd>Ctrl</kbd> + <kbd>P</kbd> → 带调拼音上屏
+- [ ] 快捷键 <kbd>Ctrl</kbd> + <kbd>E</kbd> → 英语翻译上屏，或更新候选项
+
+
 # 白霜拼音
 
 原始配置和词库由[雾凇拼音](https://github.com/iDvel/rime-ice)的 [af2480b](https://github.com/iDvel/rime-ice/commit/af2480ba1b147a6a54c0c21e2997ef451c34e036) commit 修改而来。
