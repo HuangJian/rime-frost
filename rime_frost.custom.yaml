@@ -18,6 +18,8 @@ patch:
     lua_processor@*shortcut_processor       # 快捷指令：/deploy 布署、/screenshot 截屏、……
   'engine/processors/@before 3':        # 放最后不生效，那就继续往前堆吧
     lua_processor@*slash                    # 连续斜杠：在候选项中交替切换
+  'engine/processors/@before 4':        # 放最后不生效，那就继续往前堆吧
+    lua_processor@*control_keys             # Ctrl键处理：p拼音上屏
 
   # 添加自定义的 lua filter
   engine/filters/+:

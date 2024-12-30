@@ -5,7 +5,10 @@
 - [x] 符号配对：自动符号配对，并移动光标到中间
 - [x] 帮助菜单：输入 `/help` 显示帮助菜单
 - [x] 快捷指令：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
-- [ ] 快捷键 <kbd>Ctrl</kbd> + <kbd>P</kbd> → 带调拼音上屏
+- [x] 拼音上屏：
+      <kbd>Ctrl</kbd> + <kbd>P</kbd> → 带调拼音上屏、
+      <kbd>Ctrl</kbd> + <kbd>[</kbd> → 最左字拼音上屏、
+      <kbd>Ctrl</kbd> + <kbd>]</kbd> → 最右字拼音上屏
 - [ ] 快捷键 <kbd>Ctrl</kbd> + <kbd>E</kbd> → 英语翻译上屏，或更新候选项
 
 

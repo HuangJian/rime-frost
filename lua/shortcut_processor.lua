@@ -1,4 +1,4 @@
-local rime_helper = require "lib/rime_helper"
+local rime_helper = require("./lib/rime_helper")
 
 local shortcutData = require('./data/shortcut_data')
 

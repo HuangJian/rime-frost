@@ -8,11 +8,9 @@ local Filter = {}
 
 -- line format: 不可数集 [bù kě shuò jí] /uncountable set (math.)/
 function Filter.parseLine(line)
-    local w = {}
     local word, pinyin, desc = line:match("^(.-) %[(.-)%] /(.+)/.*$")
     if not word or word:len() < 1 then return end
 
-    w.info = pinyin .. desc
     return {
         word = word,
         info = pinyin .. '|' .. desc
@@ -20,7 +18,6 @@ function Filter.parseLine(line)
 end
 
 function Filter.init(env)
-    ---@diagnostic disable-next-line: undefined-global
     local fileAbsolutePath = rime_api.get_user_data_dir() .. "/lua/data/cedict_fixed.u8"
     local file = io.open(fileAbsolutePath, "r")
     if file == nil then return end
