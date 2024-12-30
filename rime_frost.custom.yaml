@@ -15,6 +15,8 @@ patch:
   'engine/processors/@before 1':        # 「符号配对」仅在「以词定字」之后执行，否则无法生效
     lua_processor@*pairs                    # 符号配对：自动补全配对的符号，并把光标左移到符号对内部
   'engine/processors/@before 2':        # 放最后不生效，那就继续往前堆吧
+    lua_processor@*shortcut_processor       # 快捷指令：/deploy 布署、/screenshot 截屏、……
+  'engine/processors/@before 3':        # 放最后不生效，那就继续往前堆吧
     lua_processor@*slash                    # 连续斜杠：在候选项中交替切换
 
   # 添加自定义的 lua filter
@@ -25,6 +27,7 @@ patch:
   # 添加自定义的 lua translator
   engine/translators/+:
     - lua_translator@*help_menu             # 帮助菜单，/help 触发显示
+    - lua_translator@*shortcut_translator   # 快捷指令：/deploy 布署、/screenshot 截屏、……
 
   key_binder/bindings/+:
     - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选

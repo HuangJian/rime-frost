@@ -17,6 +17,7 @@ local table = {
     { "上下翻页", "→ ,.号键" },
     { "以词定字", "→ []号键" },
     { "方案选单", "→ F4" },
+    { "快捷指令", "→ /deploy /screenshot" },
     -- { "词条置顶", "→ Ctrl+t" },
     -- { "词条降频", "→ Ctrl+j" },
     -- { "词条隐藏", "→ Ctrl+x" },
@@ -50,10 +51,9 @@ local T = {}
 function T.func(input, seg, env)
     local composition = env.engine.context.composition
     local segment = composition:back()
-    if (input == "/help") then
+    if #input > 2 and ("/help"):sub(1, #input) == input then
         segment.prompt = "〔帮助菜单〕"
         for _, v in ipairs(table) do
----@diagnostic disable-next-line: undefined-global
             local cand = Candidate("help", seg.start, seg._end, v[1], " " .. v[2])
             cand.quality = 999
             yield(cand)
