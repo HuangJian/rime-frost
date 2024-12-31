@@ -33,6 +33,8 @@ rime_patch
 
 *.zip
 
+runLog.txt
+
 # 万象语法模型，用于长句精确匹配
 # https://github.com/amzxyz/RIME-LMDG
 amz-*

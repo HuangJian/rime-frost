@@ -9,7 +9,12 @@
       <kbd>Ctrl</kbd> + <kbd>P</kbd> → 带调拼音上屏、
       <kbd>Ctrl</kbd> + <kbd>[</kbd> → 最左字拼音上屏、
       <kbd>Ctrl</kbd> + <kbd>]</kbd> → 最右字拼音上屏
-- [ ] 快捷键 <kbd>Ctrl</kbd> + <kbd>E</kbd> → 英语翻译上屏，或更新候选项
+- [x] 汉译英上屏 （例：`shuxue/en` 立即上屏 `mathematics`）
+  - '/e' 开启翻译上屏，在注解里提示每个词语英语翻译上屏的快捷键
+  - '/en' 选中第一个汉语候选项的翻译， '/ea' 选中第二个，……
+    - 如果选中项只有唯一翻译，英文只接上屏（例：`shuxue/en` 立即上屏 `mathematics`）
+    - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
+- [ ] 扩展英文词库 → 白霜拼音自带英文词库未完全覆盖 ecdict 内容，如 auror 未候选 auroral
 
 
 # 白霜拼音
