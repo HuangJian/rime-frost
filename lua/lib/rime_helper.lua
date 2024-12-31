@@ -1,7 +1,7 @@
 local function get_picking_candidate(key, segment)
     local keyvalue = key:repr()
     local idx = -1
-    if keyvalue == 'space' then
+    if keyvalue == 'space' or keyvalue == 'Return' then
         idx = 0
     elseif string.find(keyvalue, '^[1-9]$') then
         idx = tonumber(keyvalue) - 1
