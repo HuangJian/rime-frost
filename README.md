@@ -11,7 +11,8 @@
   - '/en' 选中第一个汉语候选项的翻译， '/ea' 选中第二个，……
     - 如果选中项只有唯一翻译，英文只接上屏（例：`shuxue/en` 立即上屏 `mathematics`）
     - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
-- [ ] 扩展英文词库 → 白霜拼音自带英文词库未完全覆盖 ecdict 内容，如 auror 未候选 auroral
+- [x] 扩展英文词库： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
+  - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
 
 
 # 白霜拼音
