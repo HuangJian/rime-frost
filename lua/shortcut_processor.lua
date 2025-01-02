@@ -19,7 +19,7 @@ function processor.func(key, env)
         local shortcut = pickingCandidate.text
         for _, v in ipairs(shortcutData) do
             if shortcut == v.input then
-                os.execute(v.command)
+                io.popen(v.command)
                 context:clear()
                 return 1 -- kAccepted 收下此key
             end

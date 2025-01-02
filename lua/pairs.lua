@@ -12,7 +12,7 @@ local function moveCursorToLeft()
             key code 123 # Left Arrow
         end tell
     ']]
-    os.execute(osascript)
+    io.popen(osascript)
 end
 
 local pairTable = {
