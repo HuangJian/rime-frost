@@ -49,15 +49,48 @@ local table = {
     -- { "项目地址", "→ " .. "boomker/rime-fast-xhup" },
 }
 
+local function libRimeLuaVersion()
+    local ver
+    if LevelDb then
+        ver = 177
+    elseif Opencc then
+        ver = 147
+    elseif KeySequence and KeySequence().repr then
+        ver = 139
+    elseif ConfigMap and ConfigMap().keys then
+        ver = 127
+    elseif Projection then
+        ver = 102
+    elseif KeyEvent then
+        ver = 100
+    elseif Memory then
+        ver = 80
+    else
+        ver = 79
+    end
+    return ver
+end
+
+local function rimeInfo()
+    -- reflects only the memory allocated by Lua itself and does not account for
+    -- other processes or system-level memory usage
+    local mem = collectgarbage("count") / 1024
+    return string.format("Memory: %.2fM | Ver: librime %s librime-lua %s %s",
+        mem,
+        rime_api.get_rime_version(),
+        libRimeLuaVersion(),
+        _VERSION)
+end
+
 local T = {}
 
 function T.func(input, seg, env)
     local composition = env.engine.context.composition
     local segment = composition:back()
     if #input > 2 and ("/help"):sub(1, #input) == input then
-        segment.prompt = "〔帮助菜单〕"
+        segment.prompt = "〔帮助菜单〕" .. rimeInfo()
         for _, v in ipairs(table) do
-            local cand = Candidate("help", seg.start, seg._end, v[1], " " .. v[2])
+            local cand = Candidate("help", seg.start, seg._end, v[1], v[2])
             cand.quality = 999
             yield(cand)
         end
