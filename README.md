@@ -1,19 +1,20 @@
 # 个性化扩展
-- [x] 汉译英：候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
-- [x] 英译汉：候选的英文单词，在注解里显示它们的简单中文翻译
-- [x] 斜杠符号：多次按 <kbd>/</kbd> 键，切换选中其候选符号
-- [x] 符号配对：自动符号配对，并移动光标到中间
-- [x] 帮助菜单：输入 `/help` 显示帮助菜单
-- [x] 快捷指令：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
-- [x] 拼音上屏（例：`pinyin/py1` 立即上屏 `pīn yīn`）
-- [x] 汉译英上屏 （例：`shuxue/en` 立即上屏 `mathematics`）
+- [x] [汉译英](./lua/cn_2en_pinyin.lua)：候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
+- [x] [英译汉](./lua/en2cn.lua)：候选的英文单词，在注解里显示它们的简单中文翻译
+- [x] [符号配对](./lua/pairs.lua)：自动符号配对，并移动光标到中间
+- [x] [斜杠符号](./lua/slash.lua)：多次按 <kbd>/</kbd> 键，切换选中其候选符号
+- [x] [帮助菜单](./lua/help_menu.lua)：输入 `/help` 显示帮助菜单
+- [x] [快捷指令](./lua/shortcut_processor.lua)：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
+- [x] [拼音上屏](./lua/cn_2en_pinyin.lua)（例：`pinyin/py1` 立即上屏 `pīn yīn`）
+- [x] [汉译英上屏](./lua/cn_2en_pinyin.lua) （例：`shuxue/en` 立即上屏 `mathematics`）
   - '/e' 开启翻译上屏，在注解里提示每个词语英语翻译上屏的快捷键
   - '/en' 选中第一个汉语候选项的翻译， '/ea' 选中第二个，……
     - 如果选中项只有唯一翻译，英文只接上屏（例：`shuxue/en` 立即上屏 `mathematics`）
     - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
-- [x] 扩展英文词库： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
+- [x] [扩展英文词库](./lua/en2cn.lua)： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
-- [x] 模糊音扩展： `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
+- [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
+    `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
 
 
 # 白霜拼音
