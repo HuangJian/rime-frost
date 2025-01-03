@@ -16,6 +16,11 @@
 - [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
     `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
 
+---
+## 功能调整
+- [x] [快速计算](./lua/calculator.lua)：输入 `/calc` 或 `/js` 触发快速计算功能
+  - 例①：`/calc108*56` 候选 `6048`、`108*56=6048` 等
+  - 例②：`/calcsin(pi/2)` 候选 `10.0`、`sin(pi/2)=1.0` 等
 
 # 白霜拼音
 

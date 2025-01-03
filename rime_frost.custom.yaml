@@ -41,6 +41,8 @@ patch:
     - derive/([aeio])ng$/$1n/          # an, en, in, on => ang, eng, ing, ong
     - derive/([iu])a(o|ng?)$/a$1$2/    # tain => tian
 
+  recognizer/patterns/calculator:     "^/(js|calc).*$"      #计算器功能引导
+
   # 万象语法模型，用于长句精确匹配
   # https://github.com/amzxyz/RIME-LMDG
   # 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html

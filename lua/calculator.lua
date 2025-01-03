@@ -3,17 +3,10 @@
 local M = {}
 
 function M.init(env)
-  local config = env.engine.schema.config
-  env.name_space = env.name_space:gsub('^*', '')
-  M.prefix = config:get_string(env.name_space .. '/trigger') or 'V'
 end
 
 local function startsWith(str, start)
   return string.sub(str, 1, string.len(start)) == start
-end
-
-local function truncateFromStart(str, truncateStr)
-  return string.sub(str, string.len(truncateStr) + 1)
 end
 
 -- 函数表
@@ -159,7 +152,7 @@ calcPlugin["log10"] = log10
 
 -- 平均值
 local function avg(...)
-  local data = {...}
+  local data = { ... }
   local n = select("#", ...)
   -- 样本数量不能为0
   if n == 0 then return nil end
@@ -176,7 +169,7 @@ calcPlugin["avg"] = avg
 
 -- 方差
 local function variance(...)
-  local data = {...}
+  local data = { ... }
   local n = select("#", ...)
   -- 样本数量不能为0
   if n == 0 then return nil end
@@ -191,7 +184,7 @@ local function variance(...)
   -- 计算方差
   local sum_squared_diff = 0
   for _, value in ipairs(data) do
-    sum_squared_diff = sum_squared_diff + (value - mean)^2
+    sum_squared_diff = sum_squared_diff + (value - mean) ^ 2
   end
 
   return sum_squared_diff / n
@@ -221,11 +214,19 @@ end
 
 -- 简单计算器
 function M.func(input, seg, env)
-  if not startsWith(input, M.prefix) then return end
+  if #input > 2 and (startsWith("/js", input) or startsWith("/calc", input)) then
+    local composition = env.engine.context.composition
+    local segment = composition:back()
+    segment.prompt = "〔数学计算〕 /calc 或 /js 触发"
+  end
+
+  if not startsWith(input, "/js") and not startsWith(input, "/calc") then return end
+
   -- 提取算式
-  local express = truncateFromStart(input, M.prefix)
-  -- 算式长度 < 2 直接终止(没有计算意义)
-  if (string.len(express) < 2) then return end
+  local express = input:gsub("^(/calc)", ""):gsub("^(/js)", "")
+  -- 算式长度 < 1 直接终止(没有计算意义)
+  if (string.len(express) < 1) then return end
+
   -- pcall()的原因需要控制一下 . 符号的位置
   -- 现在不需要了
   -- if (string.match(express, "[^0-9]%.")) then
@@ -238,14 +239,19 @@ function M.func(input, seg, env)
   if success then
     yield(Candidate(input, seg.start, seg._end, result, ""))
     yield(Candidate(input, seg.start, seg._end, express .. "=" .. result, ""))
+    yield(Candidate(input, seg.start, seg._end, "`" .. express .. "=" .. result .. "`", ""))
   else
     yield(Candidate(input, seg.start, seg._end, express, "解析失败"))
     yield(Candidate(input, seg.start, seg._end, code, "入参"))
-    -- TODO: 错误信息记录到日志中
-    -- print("express: " .. express)
-    -- print("code: " .. code)
-    -- print("result: " .. result)
   end
+
+  yield(Candidate(input, seg.start, seg._end,
+    "〔支持常数〕", "e = 2.718281828459, π(pi) = 3.1415926535898"))
+
+  local hints = "rdm(随机数), avg(平均), var(方差), fact\n" ..
+    "\t\texp, sqrt, log, loge, log10\n" ..
+    "\t\tsin, sinh, asin, cos, cosh, acos, tan, tanh, atan, atan2, deg, rad"
+    yield(Candidate(input, seg.start, seg._end, "〔支持函数〕", hints))
 end
 
 return M
