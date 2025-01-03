@@ -13,6 +13,7 @@
     - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
 - [x] 扩展英文词库： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
+- [x] 模糊音扩展： `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
 
 
 # 白霜拼音

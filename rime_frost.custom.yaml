@@ -33,6 +33,14 @@ patch:
     - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选
     - {when: has_menu,  accept: apostrophe, send: 3}        ## 单引号用于第3候选
 
+  # 模糊音： https://gist.github.com/lotem/2320943
+  speller/algebra/+:
+    - derive/^([zcs])h/$1/             # z, c, s => zh, ch, sh
+    - derive/^([zcs])([^h])/$1h$2/     # zh, ch, sh => z, c, s
+    - derive/([aeio])n$/$1ng/          # ang, eng, ing, ong => an, en, in, on
+    - derive/([aeio])ng$/$1n/          # an, en, in, on => ang, eng, ing, ong
+    - derive/([iu])a(o|ng?)$/a$1$2/    # tain => tian
+
   # 万象语法模型，用于长句精确匹配
   # https://github.com/amzxyz/RIME-LMDG
   # 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
