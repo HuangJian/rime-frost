@@ -81,6 +81,70 @@ local function utf8_gsub(str, target, replacement)
 
     return table.concat(result)
 end
+
+local function getUnaccentedChar(char)
+    local replacements = {
+        ['ā'] = 'a',
+        ['á'] = 'a',
+        ['ǎ'] = 'a',
+        ['à'] = 'a',
+        ['ē'] = 'e',
+        ['é'] = 'e',
+        ['ě'] = 'e',
+        ['è'] = 'e',
+        ['ī'] = 'i',
+        ['í'] = 'i',
+        ['ǐ'] = 'i',
+        ['ì'] = 'i',
+        ['ō'] = 'o',
+        ['ó'] = 'o',
+        ['ǒ'] = 'o',
+        ['ò'] = 'o',
+        ['ū'] = 'u',
+        ['ú'] = 'u',
+        ['ǔ'] = 'u',
+        ['ù'] = 'u',
+        ['ǖ'] = 'v',
+        ['ǘ'] = 'v',
+        ['ǚ'] = 'v',
+        ['ǜ'] = 'v',
+        ['ü'] = 'v'
+    }
+
+    for accentedChar, replacement in pairs(replacements) do
+        if accentedChar == char then return replacement end
+    end
+    return char
+end
+
+-- replace all accented characters with their non-accented equivalents
+local function unaccent(str)
+    local result = {}
+    local i = 1
+    local strLen = #str
+
+    while i <= strLen do
+        local byte = str:byte(i)
+        if byte >= 0xC0 then
+            local char = str:sub(i, i + 1)
+            local unaccented = getUnaccentedChar(char)
+            table.insert(result, unaccented)
+            i = i + 2
+        elseif byte >= 0xF0 then
+            table.insert(result, str:sub(i, i + 3))
+            i = i + 4
+        elseif byte >= 0xE0 then
+            table.insert(result, str:sub(i, i + 2))
+            i = i + 3
+        else
+            table.insert(result, str:sub(i, i))
+            i = i + 1
+        end
+    end
+
+    return table.concat(result)
+end
+
 -- Returns the Levenshtein distance between the two given strings
 -- https://gist.github.com/Badgerati/3261142
 local function levenshtein(str1, str2)
@@ -127,5 +191,6 @@ return {
     split = split,
     utf8_sub = utf8_sub,
     utf8_gsub = utf8_gsub,
+    unaccent = unaccent,
     levenshtein = levenshtein
 }

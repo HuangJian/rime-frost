@@ -115,75 +115,69 @@ local function tryTranslateToPinyin(typedText, engine, candidateList)
     end
 end
 
--- Function to replace all accented characters with their non-accented equivalents
-local function replaceAccentedChars(str)
-    local replacements = {
-        ['ā'] = 'a', ['á'] = 'a', ['ǎ'] = 'a', ['à'] = 'a',
-        ['ē'] = 'e', ['é'] = 'e', ['ě'] = 'e', ['è'] = 'e',
-        ['ī'] = 'i', ['í'] = 'i', ['ǐ'] = 'i', ['ì'] = 'i',
-        ['ō'] = 'o', ['ó'] = 'o', ['ǒ'] = 'o', ['ò'] = 'o',
-        ['ū'] = 'u', ['ú'] = 'u', ['ǔ'] = 'u', ['ù'] = 'u',
-        ['ǖ'] = 'v', ['ǘ'] = 'v', ['ǚ'] = 'v', ['ǜ'] = 'v',
-        ['ü'] = 'v'
-    }
-
-    for accentedChar, replacement in pairs(replacements) do
-        str = stringUtil.utf8_gsub(str, accentedChar, replacement)
-    end
-
-    return str
-end
-
 -- 重排汉字候选项，把拼音与输入完全匹配的候选项往前移
 -- 只重排前面二十项，避免性能损耗
-local function sortTop20CnCandidatesByPinyin(typedText, candidateList)
-    local idxArray = {}
-    local wordsToSort = {}
-    for i = 1, #candidateList do
-        local cand = candidateList[i]
-        if i <= 20 and isChineseWord(cand.text) and stringUtil.utf8_sub(cand.comment, 1, 1) == '〖' then
-            local pinyin = cand.comment:match("^〖(.-)〗")
-            if pinyin then
-                local replaced = replaceAccentedChars(pinyin:gsub(' ', ''))
-                local distance = 100 + i
-                if replaced:sub(1, #typedText) == typedText then distance = i end
+local function sortTop20CnCandidatesByPinyin(typedText, candidatesWithCedict, candsToYield)
+    -- 忽略 / 后的字符，如 `zhangk/e` 只用 `zhangk` 来匹配
+    -- 以免选择汉译英时，按下 `/e` 又把 `展开` 顶到最上面
+    local prefix = typedText:gsub('(/.*)', '')
+    local idxCandsToYield = {}
+    local idxCandsWithCedict = {}
+    local candidatesToSort = {}
+    for i = 1, #candidatesWithCedict do
+        if i <= 20 then
+            local item = candidatesWithCedict[i]
+            table.insert(idxCandsToYield, item.idx)
+            table.insert(idxCandsWithCedict, i)
+            table.insert(candidatesToSort, item)
 
-                table.insert(idxArray, i)
-                table.insert(wordsToSort, {candidate = cand, distance = distance})
+            item.distance = 100 + i
+            local unaccented = stringUtil.unaccent(item.pinyin:gsub(' ', ''))
+            if unaccented:sub(1, #prefix) == prefix then
+                item.distance = i
             end
         end
     end
 
-    table.sort(wordsToSort, function (a, b) return a.distance < b.distance end)
+    table.sort(candidatesToSort, function(a, b) return a.distance < b.distance end)
 
-    for i = 1, #idxArray do
-        candidateList[idxArray[i]] = wordsToSort[i].candidate
+    for i = 1, #idxCandsToYield do
+        candsToYield[idxCandsToYield[i]] = candidatesToSort[i].candidate
+        idxCandsWithCedict[idxCandsWithCedict[i]] = candidatesToSort[i]
     end
 end
 
 function Filter.func(input, env)
+    local startTime = os.clock()
+
     local cands = {}
     local candidatesWithCedict = {}
 
+    local idx = 0
     for cand in input:iter() do
-        if isChineseWord(cand.text) then
+        idx = idx + 1
+        if idx <= 100 and isChineseWord(cand.text) then
             local info = dict[cand.text]
             if info then
                 local pinyin, en = info:match("^(.-)|(.+)$")
                 cand.comment = '〖' .. pinyin .. '〗' .. en
-                table.insert(candidatesWithCedict, { candidate = cand, pinyin = pinyin, en = en })
+                table.insert(candidatesWithCedict,
+                    { candidate = cand, pinyin = pinyin, en = en, idx = idx, distance = 999 })
             end
         end
         table.insert(cands, cand)
     end
 
-    sortTop20CnCandidatesByPinyin(env.engine.context.input, cands)
+    sortTop20CnCandidatesByPinyin(env.engine.context.input, candidatesWithCedict, cands)
 
     tryTranslateToEnglish(env.engine.context.input, env.engine, candidatesWithCedict)
     tryTranslateToPinyin(env.engine.context.input, env.engine, candidatesWithCedict)
 
-    for i = 1, #cands do yield(cands[i]) end
+    if idx > 0 then
+        local duration = (os.clock() - startTime) * 1000
+        cands[1].comment = cands[1].comment .. '\n\t\t=== 汉译英耗时： ' .. duration .. 'ms ==='
+    end
+    for i = 1, idx do yield(cands[i]) end
 end
-
 
 return Filter
