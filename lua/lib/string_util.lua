@@ -50,6 +50,37 @@ local split = function(str, sep, nmax)
     return r
 end
 
+-- Function to replace all occurrences of a substring in a UTF-8 string
+local function utf8_gsub(str, target, replacement)
+    local result = {}
+    local targetLen = #target
+    local i = 1
+
+    while i <= #str do
+        local char = str:sub(i, i + targetLen - 1)
+        if char == target then
+            table.insert(result, replacement)
+            i = i + targetLen
+        else
+            local byte = str:byte(i)
+            if byte >= 0xF0 then
+                table.insert(result, str:sub(i, i + 3))
+                i = i + 4
+            elseif byte >= 0xE0 then
+                table.insert(result, str:sub(i, i + 2))
+                i = i + 3
+            elseif byte >= 0xC0 then
+                table.insert(result, str:sub(i, i + 1))
+                i = i + 2
+            else
+                table.insert(result, str:sub(i, i))
+                i = i + 1
+            end
+        end
+    end
+
+    return table.concat(result)
+end
 -- Returns the Levenshtein distance between the two given strings
 -- https://gist.github.com/Badgerati/3261142
 local function levenshtein(str1, str2)
@@ -67,7 +98,7 @@ local function levenshtein(str1, str2)
         return 0
     end
 
-    -- loadDictionaryialiseialise the base matrix values
+    -- initialise the base matrix values
     for i = 0, len1, 1 do
         matrix[i] = {}
         matrix[i][0] = i
@@ -95,5 +126,6 @@ end
 return {
     split = split,
     utf8_sub = utf8_sub,
+    utf8_gsub = utf8_gsub,
     levenshtein = levenshtein
 }

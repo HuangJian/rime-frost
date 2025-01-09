@@ -15,7 +15,10 @@
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
 - [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
     `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
-
+  - [x] [拼音完全匹配优先](./lua/cn_2en_pinyin.lua)：输入 `zhangk` 时，`掌控`应在`展开`前
+- [ ] 英文发音：调用 `say` 指令，读出英文词语
+- [ ] [大模型加持](https://github.com/amzxyz/RIME-LMDG)：按教程配置后，进程内存未见增加
+  - 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
 ---
 ## 功能调整
 - [x] [快速计算](./lua/calculator.lua)：输入 `/calc` 或 `/js` 触发快速计算功能
