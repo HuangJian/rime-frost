@@ -33,6 +33,7 @@ function TestStringUtil:testUtf8Gsub()
     luaunit.assertEquals(output, expected)
 end
 
+-- performance: 150 ms, 612 KB
 function TestStringUtil:testReplaceAccentedChars()
     local input = string.rep("hāppy tō mēēt yóu! ", 10000) -- Large input for performance testing
     local startTime = os.clock()
@@ -46,6 +47,10 @@ function TestStringUtil:testReplaceAccentedChars()
     luaunit.assertEquals(utf8.len(input), utf8.len(output))         -- Ensure length matches
 
     print("elapsedTime = " .. elapsedTime .. " ms")
+
+    collectgarbage("collect")
+    print("memory = " .. collectgarbage("count") .. "KB")
+
     luaunit.assertTrue(elapsedTime < 200, "Performance threshold exceeded: " .. elapsedTime .. " ms")
 end
 
