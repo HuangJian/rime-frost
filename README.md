@@ -16,9 +16,16 @@
 - [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
     `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
   - [x] [拼音完全匹配优先](./lua/cn_2en_pinyin.lua)：输入 `zhangk` 时，`掌控`应在`展开`前
-- [ ] 英文发音：调用 `say` 指令，读出英文词语
-- [ ] [大模型加持](https://github.com/amzxyz/RIME-LMDG)：按教程配置后，进程内存未见增加
+- [x] [大模型加持](https://github.com/amzxyz/RIME-LMDG)
   - 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
+  - 需要把模型文件后缀名设为 `.gram`
+    ```bash
+     octagram.cc:29] use grammar: amz-v3n2m1-zh-hans
+     gram_db.cc:14 ] loading gram db: /Users/hj/Library/Rime/amz-v3n2m1-zh-hans.gram
+     gram_db.cc:44 ] found double array image of size 26184192.
+     octagram.cc:29] use grammar: amz-v3n2m1-zh-hans
+    ```
+- [ ] 英文发音：调用 `say` 指令，读出英文词语
 ---
 ## 功能调整
 - [x] [快速计算](./lua/calculator.lua)：输入 `/calc` 或 `/js` 触发快速计算功能
