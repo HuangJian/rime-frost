@@ -51,7 +51,13 @@ local table = {
 
 local function libRimeLuaVersion()
     local ver
-    if LevelDb then
+    if Opencc and Opencc('s2t.json').convert_word then ----------- 构造
+        return 200
+    elseif rime_api.regex_match then
+        return 197
+    elseif rime_api.get_distribution_name then
+        return 185
+    elseif LevelDb then
         ver = 177
     elseif Opencc then
         ver = 147
@@ -71,6 +77,8 @@ local function libRimeLuaVersion()
     return ver
 end
 
+local version = libRimeLuaVersion()
+
 local function rimeInfo()
     -- reflects only the memory allocated by Lua itself and does not account for
     -- other processes or system-level memory usage
@@ -78,7 +86,7 @@ local function rimeInfo()
     return string.format("Memory: %.2fM | Ver: librime %s librime-lua %s %s",
         mem,
         rime_api.get_rime_version(),
-        libRimeLuaVersion(),
+        version,
         _VERSION)
 end
 
