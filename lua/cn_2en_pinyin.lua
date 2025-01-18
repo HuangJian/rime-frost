@@ -20,18 +20,33 @@ function Filter.parseLine(line)
     }
 end
 
+local splitter = "\\\\"
+
+local isFilterInitialized = false -- 重启输入法有时会初始化插件两次，导致字典被加载两次。绕过之。
 function Filter.init(env)
+    if isFilterInitialized then
+        -- log.writeLog('isFilterInitialized = true')
+        return
+    end
+
     local fileAbsolutePath = rime_api.get_user_data_dir() .. "/lua/data/cedict_fixed.u8"
     local file = io.open(fileAbsolutePath, "r")
     if file == nil then return end
 
     for line in file:lines() do
         local w = Filter.parseLine(line)
+        -- there might be multiple entries of the same word, store them together
         if w then
-            dict[w.word] = w.info
+            local previous = dict[w.word]
+            if previous then
+                dict[w.word] = previous .. splitter .. w.info  -- Append if already exists
+            else
+                dict[w.word] = w.info
+            end
         end
     end
     file:close()
+    isFilterInitialized = true
 end
 
 local function tryTranslateToEnglish(typedText, engine, candidateList)
@@ -115,69 +130,64 @@ local function tryTranslateToPinyin(typedText, engine, candidateList)
     end
 end
 
--- 重排汉字候选项，把拼音与输入完全匹配的候选项往前移
--- 只重排前面二十项，避免性能损耗
-local function sortTop20CnCandidatesByPinyin(typedText, candidatesWithCedict, candsToYield)
+function Filter.func(input, env)
+    local typedText = env.engine.context.input
     -- 忽略 / 后的字符，如 `zhangk/e` 只用 `zhangk` 来匹配
     -- 以免选择汉译英时，按下 `/e` 又把 `展开` 顶到最上面
     local prefix = typedText:gsub('(/.*)', '')
-    local idxCandsToYield = {}
-    local idxCandsWithCedict = {}
-    local candidatesToSort = {}
-    for i = 1, #candidatesWithCedict do
-        if i <= 20 then
-            local item = candidatesWithCedict[i]
-            table.insert(idxCandsToYield, item.idx)
-            table.insert(idxCandsWithCedict, i)
-            table.insert(candidatesToSort, item)
 
-            item.distance = 100 + i
-            local unaccented = stringUtil.unaccent(item.pinyin:gsub(' ', ''))
-            if unaccented:sub(1, #prefix) == prefix then
-                item.distance = i
-            end
-        end
-    end
+    local fullyMatched = {}
+    local partialyMatched = {}
+    local others = {}
 
-    table.sort(candidatesToSort, function(a, b) return a.distance < b.distance end)
-
-    for i = 1, #idxCandsToYield do
-        candsToYield[idxCandsToYield[i]] = candidatesToSort[i].candidate
-        idxCandsWithCedict[idxCandsWithCedict[i]] = candidatesToSort[i]
-    end
-end
-
-function Filter.func(input, env)
-    local startTime = os.clock()
-
-    local cands = {}
     local candidatesWithCedict = {}
 
-    local idx = 0
     for cand in input:iter() do
-        idx = idx + 1
-        if idx <= 100 and isChineseWord(cand.text) then
+        local isCandidateInserted = false
+        if isChineseWord(cand.text) then
             local info = dict[cand.text]
             if info then
-                local pinyin, en = info:match("^(.-)|(.+)$")
-                cand.comment = '〖' .. pinyin .. '〗' .. en
-                table.insert(candidatesWithCedict,
-                    { candidate = cand, pinyin = pinyin, en = en, idx = idx, distance = 999 })
+                local arr = stringUtil.split(info, splitter)
+                for i = 1, #arr, 1 do
+                    local pinyin, en = arr[i]:match("^(.-)|(.+)$")
+                    -- 多音字，仅在输入字符和拼音完全匹配时，显示拼音和英文注释，避免刷屏
+                    local unaccentedPinyin = stringUtil.unaccent(pinyin:gsub(' ', ''))
+                    local isInputMatchingPinyin = unaccentedPinyin:sub(1, #prefix) == prefix
+                    if isInputMatchingPinyin then
+                        local comment = '〖' .. pinyin .. '〗' .. en
+                        local candidate = Candidate("cn", 0, #prefix, cand.text, comment)
+                        if unaccentedPinyin == prefix then
+                            table.insert(fullyMatched, candidate)
+                        else
+                            table.insert(partialyMatched, candidate)
+                        end
+                        isCandidateInserted = true
+
+                        table.insert(candidatesWithCedict, {
+                            candidate = candidate,
+                            pinyin = pinyin,
+                            en = en,
+                        })
+                    end
+                end
             end
         end
-        table.insert(cands, cand)
+        if not isCandidateInserted then
+            -- 用户词典、整句联想，与完全匹配的优先级最高
+            if cand.type == "user_phrase" or cand.type == "sentence" then
+                table.insert(fullyMatched, cand)
+            else
+                table.insert(others, cand)
+            end
+        end
     end
 
-    sortTop20CnCandidatesByPinyin(env.engine.context.input, candidatesWithCedict, cands)
+    tryTranslateToEnglish(typedText, env.engine, candidatesWithCedict)
+    tryTranslateToPinyin(typedText, env.engine, candidatesWithCedict)
 
-    tryTranslateToEnglish(env.engine.context.input, env.engine, candidatesWithCedict)
-    tryTranslateToPinyin(env.engine.context.input, env.engine, candidatesWithCedict)
-
-    if idx > 0 then
-        local duration = (os.clock() - startTime) * 1000
-        cands[1].comment = cands[1].comment .. '\n\t\t=== 汉译英耗时： ' .. duration .. 'ms ==='
-    end
-    for i = 1, idx do yield(cands[i]) end
+    for _, v in ipairs(fullyMatched) do yield(v) end
+    for _, v in ipairs(partialyMatched) do yield(v) end
+    for _, v in ipairs(others) do yield(v) end
 end
 
 return Filter
