@@ -12,7 +12,10 @@ function processor.func(key, env)
     local context = engine.context
     local segment = context.composition:back()
 
-    if segment.prompt:match("〔快捷指令〕") then
+    -- LuaProcessor::ProcessKeyEvent of *shortcut_processor error(2):
+    -- /Users/xxx/Library/Rime/lua/shortcut_processor.lua:15:
+    -- attempt to index a nil value (local 'segment')
+    if segment and segment.prompt and segment.prompt:match("〔快捷指令〕") then
         local pickingCandidate = rime_helper.get_picking_candidate(key, segment)
         if not pickingCandidate then return 2 end -- kNoop 此processor 不處理
 
