@@ -14,7 +14,7 @@ fs.readFile('../lua/data/cedict_ts.u8', 'utf8', (err, data) => {
         if (row.startsWith('#')) { // keep the rows starting with #
             return row
         }
-        if (row.includes('variant of')) { // 不处理声调变种
+        if (row.includes('variant of') || row.includes('surname')) { // 不处理声调变种和姓氏翻译
             return null
         }
         const arr = row.split(' ')
