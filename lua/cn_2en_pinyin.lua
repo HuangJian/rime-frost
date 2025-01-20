@@ -130,64 +130,81 @@ local function tryTranslateToPinyin(typedText, engine, candidateList)
     end
 end
 
+-- 根据字典拼音匹配的权重，重排对应的候选项
+-- candidatesToYield 里没有查找到拼音的候选项，原位不动
+local function sortCandidatesByPinyin(candidatesToYield, candidatesWithCedict)
+    -- 先记录查找到拼音的候选项在 candidatesToYield 里的位置
+    local idxArray = {}
+    for i = 1, #candidatesWithCedict do
+        idxArray[i] = candidatesWithCedict[i].idx
+    end
+    -- 根据权重重排 candidatesWithCedict
+    table.sort(candidatesWithCedict, function(a, b)
+        return a.weight > b.weight
+    end)
+    -- 根据 candidatesWithCedict 的顺序，就地重排 candidatesToYield
+    for i = 1, #candidatesWithCedict do
+        candidatesToYield[idxArray[i]] = candidatesWithCedict[i].candidate
+    end
+end
+
 function Filter.func(input, env)
     local typedText = env.engine.context.input
     -- 忽略 / 后的字符，如 `zhangk/e` 只用 `zhangk` 来匹配
     -- 以免选择汉译英时，按下 `/e` 又把 `展开` 顶到最上面
     local prefix = typedText:gsub('(/.*)', '')
 
-    local fullyMatched = {}
-    local partialyMatched = {}
-    local others = {}
-
+    local candidatesToYield = {}
     local candidatesWithCedict = {}
+    local newCandidates = {}  -- 多音字的第一项放在 candidatesToYield 里，其余放在 newCandidates 里
 
+    local idx = 0
     for cand in input:iter() do
-        local isCandidateInserted = false
+        idx = idx + 1
         if isChineseWord(cand.text) then
             local info = dict[cand.text]
             if info then
                 local arr = stringUtil.split(info, splitter)
                 for i = 1, #arr, 1 do
                     local pinyin, en = arr[i]:match("^(.-)|(.+)$")
-                    -- 多音字，仅在输入字符和拼音完全匹配时，显示拼音和英文注释，避免刷屏
+                    -- 仅在输入字符和拼音前序匹配时，显示拼音和英文注释，避免多音字和模糊音候选项刷屏
                     local unaccentedPinyin = stringUtil.unaccent(pinyin:gsub(' ', ''))
                     local isInputMatchingPinyin = unaccentedPinyin:sub(1, #prefix) == prefix
                     if isInputMatchingPinyin then
                         local comment = '〖' .. pinyin .. '〗' .. en
-                        local candidate = Candidate("cn", 0, #prefix, cand.text, comment)
-                        if unaccentedPinyin == prefix then
-                            table.insert(fullyMatched, candidate)
+                        if i == 1 then
+                            cand.comment = comment
+                            table.insert(candidatesWithCedict, {
+                                candidate = cand,
+                                pinyin = pinyin,
+                                en = en,
+                                weight = unaccentedPinyin == prefix and 10000 - idx or 1000 - idx,
+                                idx = idx,
+                            })
                         else
-                            table.insert(partialyMatched, candidate)
+                            local candidate = Candidate("cn", 0, #prefix, cand.text, comment)
+                            newCandidates[cand.text] = newCandidates[cand.text] or {}
+                            table.insert(newCandidates[cand.text], candidate)
                         end
-                        isCandidateInserted = true
-
-                        table.insert(candidatesWithCedict, {
-                            candidate = candidate,
-                            pinyin = pinyin,
-                            en = en,
-                        })
                     end
                 end
             end
         end
-        if not isCandidateInserted then
-            -- 用户词典、整句联想，与完全匹配的优先级最高
-            if cand.type == "user_phrase" or cand.type == "sentence" then
-                table.insert(fullyMatched, cand)
-            else
-                table.insert(others, cand)
-            end
-        end
+        table.insert(candidatesToYield, cand)
     end
 
     tryTranslateToEnglish(typedText, env.engine, candidatesWithCedict)
     tryTranslateToPinyin(typedText, env.engine, candidatesWithCedict)
 
-    for _, v in ipairs(fullyMatched) do yield(v) end
-    for _, v in ipairs(partialyMatched) do yield(v) end
-    for _, v in ipairs(others) do yield(v) end
+    sortCandidatesByPinyin(candidatesToYield, candidatesWithCedict)
+
+    for _, v in ipairs(candidatesToYield) do
+        yield(v)
+        local newCandidatesWithTheSameWord = newCandidates[v.text] or {}
+        for _, candidate in ipairs(newCandidatesWithTheSameWord) do
+            yield(candidate)
+        end
+    end
 end
 
 return Filter
