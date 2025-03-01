@@ -72,17 +72,14 @@ engine:
     - lua_translator@*force_gc           # 暴力 GC
     - lua_translator@*calculator    # 计算器
   filters:
-    - lua_filter@*is_in_user_dict # 用户词典的词加上一个*
-    - lua_filter@*corrector                          # 错音错字提示
+    - qjs_filter@charset_filter                     # 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
+    - qjs_filter@is_in_user_dict                    # 用户词典的词加上一个*
     - reverse_lookup_filter@radical_reverse_lookup  # 部件拆字滤镜
-    - lua_filter@*autocap_filter                     # 英文自动大写
-    - lua_filter@*v_filter                           # v 模式 symbols 优先
-    - lua_filter@*pin_cand_filter                    # 置顶候选项（顺序要求：置顶候选项 > Emoji > 简繁切换）
-    - lua_filter@*long_word_filter                   # 长词优先（顺序要求：长词优先 > Emoji）
-    - lua_filter@*reduce_english_filter              # 降低部分英语单词在候选项的位置
+    - qjs_filter@pin_cand_filter                    # 置顶候选项（顺序要求：置顶候选项 > Emoji > 简繁切换）
+    - qjs_filter@long_word_filter                   # 长词优先（顺序要求：长词优先 > Emoji）
+    - qjs_filter@reduce_english_filter              # 降低部分英语单词在候选项的位置
     - simplifier@emoji                              # Emoji
     - simplifier@traditionalize                     # 简繁切换
-    - lua_filter@*aux_code                 # 墨奇辅助码
     - uniquifier                                    # 去重
 
 

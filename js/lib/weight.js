@@ -37,7 +37,7 @@ export function getCandidateWeight(candidate, inputCode) {
     const pinyinNotFound = '~!@#$%^&'
     const unaccentedPinyin = candidate.pinyin
       ? unaccent(candidate.pinyin.replaceAll(' ', '')) // 已经从汉英词典里找到准确的带调拼音，直接使用
-      : candidate.comment?.match(/^［(.*?)\］/)?.[1]?.replaceAll(' ', '') || // 雾凇拼音方案提供了不带调拼音，尝试从注解里提取。格式： `［pin yin］`
+      : candidate.comment?.match(/^［(.*?)］/)?.[1]?.replaceAll(' ', '') || // 雾凇拼音方案提供了不带调拼音，尝试从注解里提取。格式： `［pin yin］`
         pinyinNotFound
 
     if (unaccentedPinyin === pinyinNotFound && isInUserPhrase) {

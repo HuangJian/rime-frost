@@ -153,7 +153,8 @@ export function filter(candidates, env) {
  * @description 解析字典中的拼音和英文释义信息，为候选项添加注解。如果一个词有多个拼音或释义，会创建多个候选项
  */
 function extractCandidatesByInfo(candidate, info, inputCode) {
-  const prefix = candidate.type === 'user_phrase' ? '*' : '' // 保留 is_in_user_dict 插件的设定
+  // 去掉雾凇拼音方案设置在注解中的拼音，但保留其它插件的注解，如 pin_cand_filter 的 📌，is_in_user_dict 的 ∞/*
+  const prevComment = candidate.comment?.replace(/(［.+)］/g, '')
 
   // format: [diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck
   const ret = info
@@ -162,7 +163,7 @@ function extractCandidatesByInfo(candidate, info, inputCode) {
       const [_, pinyin, en] = /^\[(.*?)\](.*)$/.exec(item) || []
       if (!pinyin) return null
 
-      const comment = prefix + '〖' + pinyin + '〗' + en
+      const comment = prevComment + '〖' + pinyin + '〗' + en
       let theCandidate = candidate
       if (idx > 0) {
         theCandidate = new Candidate('cn', 0, inputCode.length, candidate.text, comment)

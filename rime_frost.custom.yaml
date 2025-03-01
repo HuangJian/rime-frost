@@ -21,8 +21,9 @@ patch:
 
   # 添加自定义的 lua filter
   engine/filters/+:
-    - lua_filter@*en2cn                     # 英文单词简单释义。内存占用~9MB
-    - lua_filter@*cn_2en_pinyin             # 汉译英，并显示拼音。内存占用~17MB
+    - qjs_filter@en2cn                      # 英文单词简单释义。内存占用~12MB。
+    - qjs_filter@cn2en_pinyin               # 汉译英，并显示拼音。内存占用~16MB。
+    - qjs_filter@autocap_filter             # 英文自动大写。放在最后面，以处理 en2cn 增加的英文候选项。
 
   # 添加自定义的 lua translator
   engine/translators/+:
