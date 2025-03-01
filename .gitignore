@@ -39,4 +39,6 @@ runLog.txt
 # https://github.com/amzxyz/RIME-LMDG
 amz-*
 
+# librime-qjs
 js/**/*.tmp.js
+js/**/*.bin

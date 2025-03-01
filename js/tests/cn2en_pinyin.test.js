@@ -112,21 +112,22 @@ assertEquals(committedText, 'China', 'commit correct English immediately')
 console.log('Test 6: commit English immediately function tests passed')
 console.log('---------------------------------------')
 
+// Disable this test since the sorting is disabled in the plugin
 // Test 7: Sort the candidates by unaccented pinyin
-candidates = [
-  new Candidate('cn', 0, 4, '纵谷', ''),
-  new Candidate('cn', 0, 4, '总过', ''),
-  new Candidate('cn', 0, 4, '中国', ''),
-  new Candidate('cn', 0, 4, '种过', ''),
-]
-env.engine.context.input = 'zhongguo'
-filtered = cn2en_pinyin.filter(candidates, env)
-// Check if the candidates are sorted correctly
-assertEquals(filtered[0].text, '中国', 'filter: sorted by unaccented pinyin')
-assertEquals(filtered[1].text, '种过', 'filter: sorted by unaccented pinyin')
-assertEquals(filtered[2].text, '纵谷', 'filter: sorted by unaccented pinyin')
-assertEquals(filtered[3].text, '总过', 'filter: sorted by unaccented pinyin')
-console.log('Test 7: Sorting by unaccented pinyin tests passed')
-console.log('---------------------------------------')
+// candidates = [
+//   new Candidate('cn', 0, 4, '纵谷', ''),
+//   new Candidate('cn', 0, 4, '总过', ''),
+//   new Candidate('cn', 0, 4, '中国', ''),
+//   new Candidate('cn', 0, 4, '种过', ''),
+// ]
+// env.engine.context.input = 'zhongguo'
+// filtered = cn2en_pinyin.filter(candidates, env)
+// // Check if the candidates are sorted correctly
+// assertEquals(filtered[0].text, '中国', 'filter: sorted by unaccented pinyin')
+// assertEquals(filtered[1].text, '种过', 'filter: sorted by unaccented pinyin')
+// assertEquals(filtered[2].text, '纵谷', 'filter: sorted by unaccented pinyin')
+// assertEquals(filtered[3].text, '总过', 'filter: sorted by unaccented pinyin')
+// console.log('Test 7: Sorting by unaccented pinyin tests passed')
+// console.log('---------------------------------------')
 
 console.log('All tests passed!')

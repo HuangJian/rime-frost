@@ -1,5 +1,64 @@
+/**
+ * 中文输入法插件，提供以下功能：
+ * 1. 为中文候选项添加拼音注解和英文释义
+ * 2. 支持通过 /p 快捷键选择拼音（如 /py 选择第一个候选项的拼音，/pa 选择第二个候选项的拼音）
+ * 3. 支持通过 /e 快捷键选择英文翻译（如 /en 选择第一个候选项的翻译，/ea 选择第二个候选项的翻译）
+ * 4. 智能排序：根据拼音匹配度、用户词典、词语长度等因素对候选项进行排序
+ *
+ * -------------------------------------------------------
+ * 使用 JavaScript 实现，适配 librime-qjs 插件系统。
+ * by @[HuangJian](https://github.com/HuangJian)
+ */
+
+import { isChineseWord } from "./lib/string.js"
+import { getCandidateWeight } from "./lib/weight.js"
+
+/**
+ * 设置查找拼音和英文释义的候选项数量上限
+ * @type {number}
+ * @description 为了避免性能问题，只查找前面指定数量的候选项
+ */
+const sizeToLookupEnglish = 200 // 只查找前面 200 项的拼音和英文释义
+
+/**
+ * 英文翻译选择的上标提示符号
+ * @type {string}
+ * @description 用于在候选项注释中显示的上标字符，提示用户可通过快捷键选择对应的英文翻译
+ */
+const enHintCodes = 'ⁿᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'
+
+/**
+ * 英文翻译选择的快捷键
+ * @type {string}
+ * @description 与 enHintCodes 一一对应的快捷键，用于选择对应的英文翻译
+ */
+const enHintKeys = 'nabcdefghijklmoprstuvwxyz'
+
+/**
+ * 拼音选择的上标提示符号
+ * @type {string}
+ * @description 用于在候选项注释中显示的上标字符，提示用户可通过快捷键选择对应的拼音
+ */
+const pyHintCodes = 'ʸᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣᶻ'
+
+/**
+ * 拼音选择的快捷键
+ * @type {string}
+ * @description 与 pyHintCodes 一一对应的快捷键，用于选择对应的拼音
+ */
+const pyHintKeys = 'yabcdefghijklmnoprstuvwxz'
+
+/**
+ * 字典树对象，用于存储和查询中文词汇的拼音和英文释义
+ * @type {Trie}
+ */
 let trie
 
+/**
+ * 初始化插件
+ * @param {Object} env - 环境对象，包含用户数据目录、文件操作等功能
+ * @description 加载字典数据，优先从二进制文件加载以提高性能，如果二进制文件不存在则从文本文件加载并生成二进制文件
+ */
 export function init(env) {
   console.log('cn2en_pinyin filter init')
 
@@ -7,7 +66,7 @@ export function init(env) {
 
   const txtPath =
     env.cn2enTextFilePath || // for unit test
-    `${env.userDataDir}/../lua/data/cedict_fixed.u8`
+    `${env.userDataDir}/../js/data/cedict_fixed.u8`
   const binPath =
     env.en2cnBinaryFilePath || // for unit test
     `${env.userDataDir}/../js/data/cedict.bin`
@@ -25,37 +84,35 @@ export function init(env) {
   }
 }
 
+/**
+ * 插件终止函数
+ * @param {Object} env - 环境对象
+ * @description 在输入法退出或重新部署时调用，用于清理资源
+ */
 export function finit(env) {
   console.log('cn2en_pinyin filter finit')
 }
 
+/**
+ * 候选项过滤器主函数
+ * @param {Array} candidates - 候选项数组
+ * @param {Object} env - 环境对象，包含引擎上下文等信息
+ * @returns {Array} 处理后的候选项数组
+ * @description 为中文候选项添加拼音注解和英文释义，并处理拼音和英文翻译的快捷选择功能
+ */
 export function filter(candidates, env) {
-  // const start = Date.now()
-  const code = env.engine.context.input
+  const input = env.engine.context.input
   // Remove everything after a slash (e.g. "zhangk/e" becomes "zhangk")
-  const prefix = code.replace(/\/.*/, '')
+  const inputCode = input.replace(/\/.*/, '')
 
-  const size = candidates.length
   const ret = []
+  let sizeInserted = 0
   candidates.forEach((candidate, idx) => {
-    if (candidate.type === 'sentence') {
-      // 长句子优先级最高
-      candidate.weight = 9999999
-      ret.push(candidate)
-      return
-    }
-
-    candidate.weight = size - idx
-    if (candidate.type === 'user_phrase') {
-      // 用户词典，先设置基础权重。后面若拼音匹配还会继续提升权重。
-      candidate.weight += 10000
-    }
-
     if (
-      idx > 512 || // 只查找前面512个候选词，避免性能问题
+      idx >= sizeToLookupEnglish || // 只查找前面 sizeToLookupPinyin 个候选词，避免性能问题
       candidate.text.length > 10 || // 超过10个字的词不查找
       !isChineseWord(candidate.text) || // not a Chinese word
-      candidate.comment.includes('〖') || // 已经有英文了，跳过
+      candidate.comment.includes('〖') || // 已经查过了
       false
     ) {
       ret.push(candidate)
@@ -68,53 +125,52 @@ export function filter(candidates, env) {
       return
     }
 
-    const candidatesWithTheSameText = extractCandidatesByInfo(candidate, info, prefix, size - idx)
-    ret.push(...candidatesWithTheSameText)
+    const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
+    sizeInserted += candidatesHavingTheSameText.length - 1
+    ret.push(...candidatesHavingTheSameText)
   })
 
-  ret.sort((a, b) => b.weight - a.weight)
+  // TODO: 启用模糊音后出现很多与全拼输入不匹配的词语，需要排除它们的干扰。
+  // FIXME: 尝试根据拼音的相似度来排序，但是很不稳定，而且对英文及 emoji 等特殊字符的支持不好。暂时不启用。
+  // sortTopNCandidatesByPinyin(ret, sizeToLookupEnglish + sizeInserted, inputCode)
+  // ret.filter((it) => it.weight).forEach((it) => (it.comment = it.comment + '🔨' + it.weight))
 
-  tryTranslateToEnglish(code, env.engine, ret)
-  tryTranslateToPinyin(code, env.engine, ret)
+  hintToPickEnglish(ret, input)
+  tryPrependOrCommitEnglish(ret, input, env.engine)
 
-  // 3738 candidates filtered in 14ms
-  // 580 candidates filtered in 6ms
-  // console.log(`cn2en_pinyin filter: ${ret.length} candidates filtered in ${Date.now() - start}ms`)
+  hintToPickPinyin(ret, input)
+  tryPrependOrCommitPinyin(ret, input, env.engine)
+
   return ret
 }
 
-// 如果候选项只有一个拼音，直接更新其注解为：`[拼音] 英文`
-// 如果候选项有多个拼音，更新其注解为：`[拼音1] 英文1`，然后插入新的候选项，其注解为：`[拼音2] 英文2`，以此类推
-function extractCandidatesByInfo(candidate, info, prefix, defaultWeight) {
-  // [diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck
+/**
+ * 根据词典信息提取候选项
+ * @param {Object} candidate - 原始候选项对象
+ * @param {string} info - 从字典中查询到的信息，包含拼音和英文释义
+ * @param {string} inputCode - 用户输入的编码
+ * @returns {Array} 处理后的候选项数组
+ * @description 解析字典中的拼音和英文释义信息，为候选项添加注解。如果一个词有多个拼音或释义，会创建多个候选项
+ */
+function extractCandidatesByInfo(candidate, info, inputCode) {
+  const prefix = candidate.type === 'user_phrase' ? '*' : '' // 保留 is_in_user_dict 插件的设定
+
+  // format: [diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck
   const ret = info
     .split('||')
     .map((item, idx) => {
-      const [_, pinyin, en] = item.match(/^\[(.*?)\](.*)$/) || []
+      const [_, pinyin, en] = /^\[(.*?)\](.*)$/.exec(item) || []
       if (!pinyin) return null
 
-      const comment = '〖' + pinyin + '〗' + en
-      const unaccentedPinyin = unaccent(pinyin.replaceAll(' ', ''))
-      // 设置候选项权重以重新排序
-      // 主要目的是避免启用模糊音后，拼音完全匹配的候选项被推到了后面
-      let weight =
-        unaccentedPinyin === prefix
-          ? 59999 - idx + defaultWeight // 完全匹配的拼音权重最高
-          : unaccentedPinyin.startsWith(prefix)
-          ? 999 - idx + defaultWeight // 前序匹配的拼音权重次之
-          : defaultWeight // 其它候选项保持原来权重
-
-      if (candidate.type === 'user_phrase' && unaccentedPinyin !== prefix) {
-        // 用户词典，保持权重
-        weight = candidate.weight
+      const comment = prefix + '〖' + pinyin + '〗' + en
+      let theCandidate = candidate
+      if (idx > 0) {
+        theCandidate = new Candidate('cn', 0, inputCode.length, candidate.text, comment)
+      } else {
+        theCandidate.comment = comment
       }
-
-      const theCandidate =
-        idx === 0 ? candidate : new Candidate('cn', 0, prefix.length, candidate.text, comment)
-      theCandidate.comment = comment
       theCandidate.pinyin = pinyin
       theCandidate.en = en
-      theCandidate.weight = weight
 
       return theCandidate
     })
@@ -122,50 +178,60 @@ function extractCandidatesByInfo(candidate, info, prefix, defaultWeight) {
   return ret.length > 0 ? ret : [candidate]
 }
 
-const accents = 'āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü'
-const without = 'aaaaeeeeiiiioooouuuuvvvvv'
-const dict = {}
-accents.split('').forEach((char, idx) => (dict[char] = without[idx]))
+/**
+ * 根据拼音对候选项进行排序
+ * @param {Array} candidates - 候选项数组
+ * @param {number} topN - 需要排序的候选项数量
+ * @param {string} inputCode - 用户输入的编码
+ * @description 根据拼音匹配度、用户词典、词语长度等因素对前N个候选项进行排序
+ */
+function sortTopNCandidatesByPinyin(candidates, topN, inputCode) {
+  const size = candidates.length > topN ? topN : candidates.length
+  const topCandidates = candidates.slice(0, size)
 
-function unaccent(str) {
-  return str
-    .split('')
-    .map((char, i) => {
-      return dict[char] || char
-    })
-    .join('')
+  topCandidates.forEach((item, idx) => (item.weight = getCandidateWeight(item, inputCode) + size - idx))
+  topCandidates.sort((a, b) => b.weight - a.weight)
+
+  candidates.splice(0, size)
+  candidates.unshift(...topCandidates)
 }
 
-function isChineseWord(word) {
-  // Check for at least one Chinese character (range U+4E00 to U+9FFF)
-  return /[\u4e00-\u9fff]/.test(word)
-}
+/**
+ * 为候选项添加英文翻译选择的提示标记
+ * @param {Array} candidates - 候选项数组
+ * @param {string} input - 用户输入的原始字符串
+ * @description 当用户输入以 /e 结尾时，为含有英文翻译的候选项添加上标提示符号，便于用户通过快捷键选择
+ */
+function hintToPickEnglish(candidates, input) {
+  if (input.length < 3 ||! /\/e.?$/.test(input)) return
 
-function tryTranslateToEnglish(code, engine, candidates) {
-  const codeSize = code.length
-  if (codeSize < 3) return
-
-  const hintCodes = 'ⁿᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐᵒᵖʳˢᵗᵘᵛʷˣʸᶻ'
-  const hintKeys = 'nabcdefghijklmoprstuvwxyz'
-  if (/\/e.?$/.test(code)) {
-    // '/e' 启用汉译英上屏，注释上提示汉译英候选项的辅助码 => '/en', '/ea', '/eb', ...
-    let idxHint = 0
-    for (let i = 0; i < candidates.length; i++) {
-      const item = candidates[i]
-      if (item.en && idxHint < hintKeys.length) {
-        item.comment = '⇖' + hintCodes[idxHint] + item.comment
-        if (idxHint++ >= hintKeys.length) break
-      }
+  // '/e' 启用汉译英上屏，注释上提示汉译英候选项的辅助码 => '/en', '/ea', '/eb', ...
+  let idxHint = 0
+  for (let i = 0; i < candidates.length; i++) {
+    const item = candidates[i]
+    if (item.en && idxHint < enHintKeys.length) {
+      item.comment = '⇖' + enHintCodes[idxHint] + item.comment
+      if (idxHint++ >= enHintKeys.length) break
     }
   }
+}
 
-  if (code.substring(codeSize - 3, codeSize - 1) !== '/e') return
+/**
+ * 处理英文翻译的选择和上屏
+ * @param {Array} candidates - 候选项数组
+ * @param {string} input - 用户输入的原始字符串
+ * @param {Object} engine - 输入法引擎对象
+ * @description 当用户输入以 /en、/ea 等快捷键结尾时，选择对应的英文翻译并上屏或添加到候选项列表
+ */
+function tryPrependOrCommitEnglish(candidates, input, engine) {
+  const inputSize = input.length
+  if (input.substring(inputSize - 3, inputSize - 1) !== '/e') return
 
-  const lastChar = code.substring(codeSize - 1, codeSize)
-  const idx = hintKeys.indexOf(lastChar) // '/en' => 1st, '/ea' => 2nd, '/eb' => 3rd, ...
+  const lastChar = input.substring(inputSize - 1, inputSize)
+  const idx = enHintKeys.indexOf(lastChar) // '/en' => 1st, '/ea' => 2nd, '/eb' => 3rd, ...
   if (idx < 0) return
 
-  const hintCode = '⇖' + hintCodes[idx]
+  const hintCode = '⇖' + enHintCodes[idx]
   const pickingItem = candidates.find((it) => it.comment?.startsWith(hintCode))
   if (!pickingItem) return
 
@@ -184,37 +250,47 @@ function tryTranslateToEnglish(code, engine, candidates) {
     candidates.unshift(pickingItem) // 把对应的汉语候选项移到最上面
     const text = pickingItem.text
     arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('en', 0, codeSize + 2, it, '翻译自：' + text))
+      candidates.unshift(new Candidate('en', 0, inputSize + 2, it, '翻译自：' + text))
     })
   }
 }
 
-function tryTranslateToPinyin(code, engine, candidates) {
-  const codeSize = code.length
-  if (codeSize < 3) return
+/**
+ * 为候选项添加拼音选择的提示标记
+ * @param {Array} candidates - 候选项数组
+ * @param {string} input - 用户输入的原始字符串
+ * @description 当用户输入以 /p 结尾时，为含有拼音的候选项添加上标提示符号，便于用户通过快捷键选择
+ */
+function hintToPickPinyin(candidates, input) {
+  if (input.length < 3 || !/\/p.?$/.test(input)) return
 
-  const hintCodes = 'ʸᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣᶻ'
-  const hintKeys = 'yabcdefghijklmnoprstuvwxz'
-  if (/\/p.?$/.test(code)) {
-    // '/p' enables pinyin selection with hint codes => '/py', '/pa', '/pb', ...
-    let idxHint = 0
-    for (let i = 0; i < candidates.length; i++) {
-      const item = candidates[i]
-      if (item.pinyin && idxHint < hintKeys.length) {
-        item.comment = '⇖' + hintCodes[idxHint] + item.comment
-        if (idxHint++ >= hintKeys.length) break
-      }
+  // '/p' enables pinyin selection with hint codes => '/py', '/pa', '/pb', ...
+  let idxHint = 0
+  for (let i = 0; i < candidates.length; i++) {
+    const item = candidates[i]
+    if (item.pinyin && idxHint < pyHintKeys.length) {
+      item.comment = '⇖' + pyHintCodes[idxHint] + item.comment
+      if (idxHint++ >= pyHintKeys.length) break
     }
   }
+}
 
-  if (code.substring(codeSize - 3, codeSize - 1) !== '/p') return
+/**
+ * 处理拼音的选择和上屏
+ * @param {Array} candidates - 候选项数组
+ * @param {string} input - 用户输入的原始字符串
+ * @param {Object} engine - 输入法引擎对象
+ * @description 当用户输入以 /py、/pa 等快捷键结尾时，选择对应的拼音并上屏或添加到候选项列表
+ */
+function tryPrependOrCommitPinyin(candidates, input, engine) {
+  const inputSize = input.length
+  if (input.substring(inputSize - 3, inputSize - 1) !== '/p') return
 
-  const lastChar = code.substring(codeSize - 1, codeSize)
-  const idx = hintKeys.indexOf(lastChar) // '/py' => 1st, '/pa' => 2nd, '/pb' => 3rd, ...
+  const lastChar = input.substring(inputSize - 1, inputSize)
+  const idx = pyHintKeys.indexOf(lastChar) // '/py' => 1st, '/pa' => 2nd, '/pb' => 3rd, ...
   if (idx < 0) return
 
-  // const pickingItem = candidates[idx]
-  const hintCode = '⇖' + hintCodes[idx]
+  const hintCode = '⇖' + pyHintCodes[idx]
   const pickingItem = candidates.find((it) => it.comment?.startsWith(hintCode))
   if (!pickingItem) return
 
@@ -227,8 +303,8 @@ function tryTranslateToPinyin(code, engine, candidates) {
     // Multiple pinyin syllables, insert as candidates
     candidates.unshift(pickingItem) // Move the corresponding Chinese candidate to the top
     arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('py', 0, codeSize + 2, it, '拼音：' + pickingItem.text))
+      candidates.unshift(new Candidate('py', 0, inputSize + 2, it, '拼音：' + pickingItem.text))
     })
-    candidates.unshift(new Candidate('py', 0, codeSize + 2, pickingItem.pinyin, '拼音：' + pickingItem.text))
+    candidates.unshift(new Candidate('py', 0, inputSize + 2, pickingItem.pinyin, '拼音：' + pickingItem.text))
   }
 }
