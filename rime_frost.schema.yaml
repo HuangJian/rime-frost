@@ -55,22 +55,21 @@ engine:
     - ascii_segmentor
     - matcher
     - abc_segmentor
-    - affix_segmentor@radical_lookup  # 部件拆字自定义 tag
+    - affix_segmentor@radical_lookup                # 部件拆字自定义 tag
     - punct_segmentor
     - fallback_segmentor
   translators:
     - punct_translator
     - script_translator
-    - lua_translator@*date_translator    # 时间、日期、星期
-    - lua_translator@*lunar              # 农历
-    - table_translator@custom_phrase    # 自定义短语 custom_phrase.txt
-    - table_translator@melt_eng         # 英文输入
-    - table_translator@cn_en            # 中英混合词汇
-    - table_translator@radical_lookup   # 部件拆字反查
-    - lua_translator@*unicode            # Unicode
-    - lua_translator@*number_translator  # 数字、金额大写
-    - lua_translator@*force_gc           # 暴力 GC
-    - lua_translator@*calculator    # 计算器
+    - qjs_translator@date_translator                # 时间、日期、星期
+    - qjs_translator@lunar_translator               # 农历
+    - table_translator@custom_phrase                # 自定义短语 custom_phrase.txt
+    - table_translator@melt_eng                     # 英文输入
+    - table_translator@cn_en                        # 中英混合词汇
+    - table_translator@radical_lookup               # 部件拆字反查
+    - qjs_translator@unicode_translator             # Unicode，输入 U62fc 得到 '拼'
+    - qjs_translator@number_translator              # 数字、金额大写
+    - qjs_translator@calculator                     # 计算器
   filters:
     - qjs_filter@charset_filter                     # 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
     - qjs_filter@is_in_user_dict                    # 用户词典的词加上一个*
@@ -393,7 +392,7 @@ recognizer:
     radical_lookup: "^uU[a-z]+$"        # 响应部件拆字的反查，与 radical_lookup/prefix 匹配
     unicode: "^U[a-f0-9]+"              # 脚本将自动获取第 2 个字符 U 作为触发前缀，响应 lua_translator@*unicode，输出 Unicode 字符
     number: "^R[0-9]+[.]?[0-9]*"        # 脚本将自动获取第 2 个字符 R 作为触发前缀，响应 lua_translator@*number_translator，数字金额大写
-    gregorian_to_lunar: "^N[0-9]{1,8}"  # 脚本将自动获取第 2 个字符 N 作为触发前缀，响应 lua_translator@*lunar，公历转农历，输入 N20240115 得到「二〇二三年腊月初五」
+    gregorian_to_lunar: "^nl[0-9]{1,8}"  # 脚本将自动获取第 2 个字符 nl 作为触发前缀，响应 qjs_translator@lunar_translator，公历转农历，输入 nl20240115 得到「二〇二三年腊月初五」
     calculator: "^V.*$"                 #计算器功能引导
 
 # 从 default 继承快捷键

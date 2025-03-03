@@ -5,12 +5,13 @@ import { Trie } from './trie.js'
 import { assertEquals } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
-globalThis.Candidate = function (type, start, end, text, comment) {
+globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.type = type
   this.start = start
   this.end = end
   this.text = text
   this.comment = comment
+  this.quality = quality || 1
 }
 
 // Create mock trie with test data

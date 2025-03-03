@@ -10,8 +10,7 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.end = end
   this.text = text
   this.comment = comment
-  this.quality = quality
-  this.preedit = text
+  this.quality = quality || 1
 }
 
 // Create a dummy env object for init and filter calls

@@ -4,15 +4,16 @@ import * as pinCandFilter from '../pin_cand_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
-globalThis.Candidate = function (type, start, end, text, comment) {
+globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.type = type
   this.start = start
   this.end = end
   this.text = text
   this.comment = comment
-  this.preedit = text // Add preedit field for pin_cand_filter
-}
+  this.quality = quality || 1
 
+  this.preedit = text
+}
 // Create mock environment
 const env = {
   engine: {

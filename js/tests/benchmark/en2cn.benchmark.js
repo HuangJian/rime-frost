@@ -30,12 +30,13 @@ import * as fs from 'node:fs'
 const rt = getDetailedRuntimeInfo()
 
 // Define a dummy Candidate constructor for testing
-globalThis.Candidate = function (type, score, prefixSize, text, comment) {
+globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.type = type
-  this.score = score
-  this.prefixSize = prefixSize
+  this.start = start
+  this.end = end
   this.text = text
   this.comment = comment
+  this.quality = quality || 1
 }
 
 const env = {

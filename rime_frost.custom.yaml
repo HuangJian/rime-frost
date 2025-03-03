@@ -27,8 +27,8 @@ patch:
 
   # 添加自定义的 lua translator
   engine/translators/+:
-    - lua_translator@*help_menu             # 帮助菜单，/help 触发显示
-    - lua_translator@*shortcut_translator   # 快捷指令：/deploy 布署、/screenshot 截屏、……
+    - qjs_translator@help_menu              # 帮助菜单，/help 触发显示
+    - qjs_translator@shortcut_translator    # 快捷指令：/deploy 布署、/screenshot 截屏、……
 
   key_binder/bindings/+:
     - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选
