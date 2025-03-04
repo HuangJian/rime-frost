@@ -11,24 +11,24 @@ patch:
       __include: symbols.custom:/punctuator/symbols     # 从 symbols.custom.yaml 导入配置
 
 
-  # 添加自定义的 lua processors
+  # 添加自定义的 qjs processors
   'engine/processors/@before 1':        # 「符号配对」仅在「以词定字」之后执行，否则无法生效
-    lua_processor@*pairs                    # 符号配对：自动补全配对的符号，并把光标左移到符号对内部
+    qjs_processor@pairs                     # 符号配对：自动补全配对的符号，并把光标左移到符号对内部。光标移动功能目前仅支持 macOS 平台。
   'engine/processors/@before 2':        # 放最后不生效，那就继续往前堆吧
-    lua_processor@*shortcut_processor       # 快捷指令：/deploy 布署、/screenshot 截屏、……
+    qjs_processor@shortcut                  # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 processor 以执行指令
   'engine/processors/@before 3':        # 放最后不生效，那就继续往前堆吧
-    lua_processor@*slash                    # 连续斜杠：在候选项中交替切换
+    qjs_processor@slash                     # 连续斜杠：在候选项中交替切换
 
-  # 添加自定义的 lua filter
+  # 添加自定义的 qjs filter
   engine/filters/+:
     - qjs_filter@en2cn                      # 英文单词简单释义。内存占用~12MB。
     - qjs_filter@cn2en_pinyin               # 汉译英，并显示拼音。内存占用~16MB。
     - qjs_filter@autocap_filter             # 英文自动大写。放在最后面，以处理 en2cn 增加的英文候选项。
 
-  # 添加自定义的 lua translator
+  # 添加自定义的 qjs translator
   engine/translators/+:
     - qjs_translator@help_menu              # 帮助菜单，/help 触发显示
-    - qjs_translator@shortcut_translator    # 快捷指令：/deploy 布署、/screenshot 截屏、……
+    - qjs_translator@shortcut               # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 translator 以提供候选项
 
   key_binder/bindings/+:
     - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选

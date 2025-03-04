@@ -42,7 +42,7 @@ switches:
 # 输入引擎
 engine:
   processors:
-    - lua_processor@*select_character          # 以词定字
+    - qjs_processor@select_character                # 以词定字
     - ascii_composer
     - recognizer
     - key_binder
@@ -82,7 +82,7 @@ engine:
     - uniquifier                                    # 去重
 
 
-# Lua 配置: 日期、时间、星期、ISO 8601、时间戳的触发关键字
+# qjs 配置: 日期、时间、星期、ISO 8601、时间戳的触发关键字
 date_translator:
   date: rq       # 日期： 2022-11-29
   time: sj       # 时间： 18:13
@@ -91,11 +91,11 @@ date_translator:
   timestamp: ts  # 时间戳： 1669716794
 
 
-# Lua 配置：农历的触发关键字
+# qjs 配置：农历的触发关键字
 lunar: nl  # 农历： 二〇二三年冬月二十 癸卯年（兔）冬月二十
 
 
-# Lua 配置：长词优先
+# qjs 配置：长词优先
 # 提升 count 个词语，插入到第 idx 个位置。
 # 示例：将 2 个词插入到第 4、5 个候选项，输入 jie 得到「1接 2解 3姐 4饥饿 5极恶」
 long_word_filter:
@@ -103,20 +103,20 @@ long_word_filter:
   idx: 4
 
 
-# Lua 配置：为 corrector 格式化 comment，占位符为 {comment}
+# qjs 配置：为 corrector 格式化 comment，占位符为 {comment}
 # 默认 "{comment}" 输入 hun dun 时会在「馄饨」旁边生成 hún tun 的 comment
 # 例如左右加个括号 "({comment})" 就会变成 (hún tun)
 corrector: "{comment}"
 
 
-# Lua 配置: 降低部分英语单词在候选项的位置。
+# qjs 配置: 降低部分英语单词在候选项的位置。
 # 详细介绍 https://dvel.me/posts/make-rime-en-better/#短单词置顶的问题
 # 正常情况： 输入 rug 得到 「1.rug 2.如果 …… 」
 # 降低之后： 输入 rug 得到 「1.如果 2.rug …… 」
 # 几种模式：
 # all     降低脚本内置的单词（所有 3~4 位长度、前 2~3 位是完整拼音、最后一位是声母），words 作为自定义的额外补充
 # custom  完全自定义，只降低 words 里的
-# none    不降低任何单词，相当于没有启用这个 Lua
+# none    不降低任何单词，相当于没有启用这个 qjs
 # （匹配的是编码，不是单词）
 reduce_english_filter:
   mode: custom  # all | custom | none
@@ -145,8 +145,8 @@ reduce_english_filter:
   ]
 
 
-# Lua 配置: 置顶候选项
-# 注释太长了，请参考 pin_cand_filter.lua 开头的说明书。
+# qjs 配置: 置顶候选项
+# 注释太长了，请参考 pin_cand_filter.js 开头的说明书。
 pin_cand_filter:
   # 格式：编码<Tab>字词1<Space>字词2……
   # ⚙️ 以下是个人习惯，仅供参考，推荐打补丁用自己的习惯覆盖。
@@ -390,8 +390,8 @@ recognizer:
   patterns:  # 再增加方案专有的：
     punct: "^/([0-9]|10|[A-Za-z]+)$"    # 响应 symbols_v.yaml 的 symbols，用 'v' 替换 '/'
     radical_lookup: "^uU[a-z]+$"        # 响应部件拆字的反查，与 radical_lookup/prefix 匹配
-    unicode: "^U[a-f0-9]+"              # 脚本将自动获取第 2 个字符 U 作为触发前缀，响应 lua_translator@*unicode，输出 Unicode 字符
-    number: "^R[0-9]+[.]?[0-9]*"        # 脚本将自动获取第 2 个字符 R 作为触发前缀，响应 lua_translator@*number_translator，数字金额大写
+    unicode: "^U[a-f0-9]+"              # 脚本将自动获取第 2 个字符 U 作为触发前缀，响应 qjs_translator@unicode_translator，输出 Unicode 字符
+    number: "^R[0-9]+[.]?[0-9]*"        # 脚本将自动获取第 2 个字符 R 作为触发前缀，响应 qjs_translator@number_translator，数字金额大写
     gregorian_to_lunar: "^nl[0-9]{1,8}"  # 脚本将自动获取第 2 个字符 nl 作为触发前缀，响应 qjs_translator@lunar_translator，公历转农历，输入 nl20240115 得到「二〇二三年腊月初五」
     calculator: "^V.*$"                 #计算器功能引导
 

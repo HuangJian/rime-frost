@@ -1,7 +1,10 @@
 // 快捷指令：/deploy 布署、/screenshot 截屏、……
+//    部署为两种插件：1. translator 提供候选项；2. processor 响应按键执行指令。
 // -------------------------------------------------------
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
+
+import { getPickingCandidate, ProcessResult } from "./lib/rime.js"
 
 const shortcuts = [
   {
@@ -29,12 +32,12 @@ const shortcuts = [
   },
 ]
 
-export function init() {
-  console.log('shortcut_translator.js init')
+export function init(env) {
+  console.log('shortcut.js init')
 }
 
-export function finit() {
-  console.log('shortcut_translator.js finit')
+export function finit(env) {
+  console.log('shortcut.js finit')
 }
 
 export function translate(input, segment, env) {
@@ -49,4 +52,22 @@ export function translate(input, segment, env) {
     segment.prompt = '〔快捷指令〕'
   }
   return candidates
+}
+
+export function process(keyEvent, env) {
+  const segment = env.engine.context.lastSegment
+  if (!segment?.prompt?.includes('〔快捷指令〕')) return ProcessResult.kNoop
+
+  const pickingCandidate = getPickingCandidate(keyEvent, segment)
+  if (!pickingCandidate) return ProcessResult.kNoop
+
+  const matchedShortcut = shortcuts.find((item) => item.input === pickingCandidate.text)
+  if (matchedShortcut) {
+    // Execute the command
+    env.popen(matchedShortcut.command)
+    env.engine.context.clear()
+    return ProcessResult.kAccepted
+  }
+
+  return ProcessResult.kNoop
 }
