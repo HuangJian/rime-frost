@@ -11,6 +11,10 @@
 const path = 'recognizer/patterns/unicode'
 let keyword = null
 
+/**
+ * Initialize the translator
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log(`unicode translator init`)
 
@@ -19,14 +23,31 @@ export function init(env) {
   keyword = pattern.substring(1, 2)
 }
 
+/**
+ * Clean up when translator is unloaded
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log(`unicode translator finit`)
 }
 
+/**
+ * Translate input to characters based on Unicode code points
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
+ */
 export function translate(input, segment, env) {
   if (!segment.hasTag('unicode') || input.length < 3) return []
 
   const candidates = []
+
+  /**
+   * Append a candidate to the result
+   * @param {string} text - The translated text
+   * @param {string} comment - The comment text
+   */
   const yieldCandidate = (text, comment) =>
     candidates.push(new Candidate('unicode', segment.start, segment.end, text, comment || ''))
 
@@ -34,7 +55,7 @@ export function translate(input, segment, env) {
   if (match && match[1]) {
     const code = parseInt(match[1], 16)
     if (code > 0x10ffff) {
-      yieldCandidate('数值超限！')
+      yieldCandidate('数值超限！', 'Unicode 编码最大值为 0x10ffff')
       return candidates
     }
 

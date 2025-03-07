@@ -118,12 +118,6 @@ export const KeyRepr = {
   'KP_9': 'KP_9', // 小键板9
 }
 
-export const ProcessResult = {
-  kRejected: 0, // do the OS default processing
-  kAccepted: 1, // consume it
-  kNoop: 2, // leave it to other processors
-}
-
 /**
  * 根据键盘输入返回选择的候选项。
  * 支持使用空格键/回车键选择第一个候选项，使用数字键1-9选择对应序号的候选项,0选择第十个候选项。

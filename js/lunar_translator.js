@@ -256,7 +256,7 @@ function stringToDate(str) {
 
 /**
  * 初始化农历转换器
- * @param {Object} env - 输入法引擎环境对象
+ * @param {Environment} env - 输入法引擎环境对象
  */
 export function init(env) {
   console.log('lunar translator init')
@@ -266,7 +266,7 @@ export function init(env) {
 
 /**
  * 清理农历转换器资源
- * @param {Object} env - 输入法引擎环境对象
+ * @param {Environment} env - 输入法引擎环境对象
  */
 export function finit(env) {
   console.log('lunar translator finit')
@@ -274,10 +274,10 @@ export function finit(env) {
 
 /**
  * 将输入转换为农历日期
- * @param {string} input - 输入字符串
- * @param {Object} segment - 输入片段对象
- * @param {Object} env - 输入法引擎环境对象
- * @returns {Array} 返回候选项数组
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
  */
 export function translate(input, segment, env) {
   const candidates = []

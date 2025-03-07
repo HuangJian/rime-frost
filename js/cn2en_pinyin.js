@@ -10,8 +10,8 @@
  * by @[HuangJian](https://github.com/HuangJian)
  */
 
-import { isChineseWord } from "./lib/string.js"
-import { getCandidateWeight } from "./lib/weight.js"
+import { isChineseWord } from './lib/string.js'
+import { getCandidateWeight } from './lib/weight.js'
 
 /**
  * 设置查找拼音和英文释义的候选项数量上限
@@ -56,20 +56,20 @@ let trie
 
 /**
  * 初始化插件
- * @param {Object} env - 环境对象，包含用户数据目录、文件操作等功能
+ * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
  * @description 加载字典数据，优先从二进制文件加载以提高性能，如果二进制文件不存在则从文本文件加载并生成二进制文件
  */
 export function init(env) {
   console.log('cn2en_pinyin filter init')
 
+  // @ts-expect-error
   trie = env.trie || new Trie()
 
-  const txtPath =
-    env.cn2enTextFilePath || // for unit test
-    `${env.userDataDir}/../js/data/cedict_fixed.u8`
-  const binPath =
-    env.en2cnBinaryFilePath || // for unit test
-    `${env.userDataDir}/../js/data/cedict.bin`
+  // @ts-expect-error for unit test
+  const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/../js/data/cedict_fixed.u8`
+
+  // @ts-expect-error for unit test
+  const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/cedict.bin`
 
   let tick = Date.now()
   if (env.fileExists(binPath)) {
@@ -86,7 +86,7 @@ export function init(env) {
 
 /**
  * 插件终止函数
- * @param {Object} env - 环境对象
+ * @param {Environment} env - 环境对象
  * @description 在输入法退出或重新部署时调用，用于清理资源
  */
 export function finit(env) {
@@ -95,9 +95,9 @@ export function finit(env) {
 
 /**
  * 候选项过滤器主函数
- * @param {Array} candidates - 候选项数组
- * @param {Object} env - 环境对象，包含引擎上下文等信息
- * @returns {Array} 处理后的候选项数组
+ * @param {Array<Candidate>} candidates - 候选项数组
+ * @param {Environment} env - 环境对象，包含引擎上下文等信息
+ * @returns {Array<Candidate>} 处理后的候选项数组
  * @description 为中文候选项添加拼音注解和英文释义，并处理拼音和英文翻译的快捷选择功能
  */
 export function filter(candidates, env) {
@@ -204,7 +204,7 @@ function sortTopNCandidatesByPinyin(candidates, topN, inputCode) {
  * @description 当用户输入以 /e 结尾时，为含有英文翻译的候选项添加上标提示符号，便于用户通过快捷键选择
  */
 function hintToPickEnglish(candidates, input) {
-  if (input.length < 3 ||! /\/e.?$/.test(input)) return
+  if (input.length < 3 || !/\/e.?$/.test(input)) return
 
   // '/e' 启用汉译英上屏，注释上提示汉译英候选项的辅助码 => '/en', '/ea', '/eb', ...
   let idxHint = 0

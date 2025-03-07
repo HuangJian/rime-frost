@@ -4,7 +4,7 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
-import { getPickingCandidate, ProcessResult } from "./lib/rime.js"
+import { getPickingCandidate } from "./lib/rime.js"
 
 const shortcuts = [
   {
@@ -32,14 +32,29 @@ const shortcuts = [
   },
 ]
 
+/**
+ * Initialize the translator/processor
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('shortcut.js init')
 }
 
+/**
+ * Clean up when translator/processor is unloaded
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log('shortcut.js finit')
 }
 
+/**
+ * Translate input to the shortcut commands
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
+ */
 export function translate(input, segment, env) {
   if (input.length < 3 || input[0] !== '/') return []
 
@@ -54,20 +69,26 @@ export function translate(input, segment, env) {
   return candidates
 }
 
+/**
+ * Process key events to execute shortcut command
+ * @param {KeyEvent} keyEvent - The key event to process
+ * @param {Environment} env - The Rime environment
+ * @returns {ProcessResult} Result indicating if key was handled
+ */
 export function process(keyEvent, env) {
   const segment = env.engine.context.lastSegment
-  if (!segment?.prompt?.includes('〔快捷指令〕')) return ProcessResult.kNoop
+  if (!segment?.prompt?.includes('〔快捷指令〕')) return 'kNoop'
 
   const pickingCandidate = getPickingCandidate(keyEvent, segment)
-  if (!pickingCandidate) return ProcessResult.kNoop
+  if (!pickingCandidate) return 'kNoop'
 
   const matchedShortcut = shortcuts.find((item) => item.input === pickingCandidate.text)
   if (matchedShortcut) {
     // Execute the command
     env.popen(matchedShortcut.command)
     env.engine.context.clear()
-    return ProcessResult.kAccepted
+    return 'kAccepted'
   }
 
-  return ProcessResult.kNoop
+  return 'kNoop'
 }

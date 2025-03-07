@@ -174,6 +174,7 @@ function translateNumber(num) {
   results.push([intSimp + '元' + (dec ? formatDecimal(dec, false) : suffix), '〔金额小写〕'])
   results.push([intTrad + '元' + (dec ? formatDecimal(dec, true) : suffix), '〔金额大写〕'])
 
+  // @ts-ignore
   return results
 }
 
@@ -195,7 +196,7 @@ export function init(env) {
 
 /**
  * 清理数字转换模块
- * @param {Object} env - Rime 输入法引擎环境对象
+ * @param {Environment} env - Rime 输入法引擎环境对象
  */
 export function finit(env) {
   console.log(`number translator finit`)
@@ -204,7 +205,7 @@ export function finit(env) {
 /**
  * 执行数字转换
  * @param {string} input - 输入字符串
- * @param {Object} segment - 切分片段对象
+ * @param {Segment} segment - 切分片段对象
  * @param {Object} env - Rime 输入法引擎环境对象
  * @returns {Array<Candidate>} 候选项数组
  * @description 将以触发前缀开头的数字转换为对应的中文表示

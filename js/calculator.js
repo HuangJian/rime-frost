@@ -4,13 +4,26 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
+/**
+ * Initialize the calculator translator
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log(`calculator translator init`)
 }
+
+/**
+ * Clean up the calculator translator
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log(`calculator translator finit`)
 }
 
+/**
+ * Mathematical operators and functions available for calculation
+ * @type {Object.<string, number|function>}
+ */
 const operators = {
   // Constants
   E: Math.E,
@@ -65,31 +78,63 @@ const operators = {
   hypot: (...args) => Math.hypot(...args),
 
   // Custom functions
+  /**
+   * Generate a random number within a range
+   * @param {number} [min] - Minimum value (inclusive)
+   * @param {number} [max] - Maximum value (exclusive)
+   * @returns {number} Random number
+   */
   random: (min, max) => {
     if (!min) return Math.random()
     if (!max) return Math.floor(Math.random() * min + 1)
     return Math.floor(Math.random() * (max - min) + min)
   },
-  // 将角度从弧度转换为度 e.g. deg(π) = 180
+
+  /**
+   * 将角度从弧度转换为度 e.g. deg(π) = 180
+   * @param {number} x - Angle in radians
+   * @returns {number} Angle in degrees
+   */
   deg: (x) => (x * 180) / Math.PI,
-  // 将角度从度转换为弧度 e.g. rad(180) = π
+
+  /**
+   * 将角度从度转换为弧度 e.g. rad(180) = π
+   * @param {number} x - Angle in degrees
+   * @returns {number} Angle in radians
+   */
   rad: (x) => (x * Math.PI) / 180,
-  // avg(数字1, 数字2, ...) 计算平均值
+
+  /**
+   * avg(数字1, 数字2, ...) 计算平均值
+   * @param {...number} args - Numbers to average
+   * @returns {number} Average value
+   * @throws {Error} If no arguments provided
+   */
   avg: (...args) => {
-    // 样本数量不能为0
     if (args.length === 0) throw new Error('样本数量不能为0')
     return args.reduce((sum, val) => sum + val, 0) / args.length
   },
-  // var(数字1, 数字2,...) 计算方差
+
+  /**
+   * var(数字1, 数字2,...) 计算方差
+   * @param {...number} args - Numbers to calculate variance
+   * @returns {number} Variance value
+   * @throws {Error} If no arguments provided
+   */
   var: (...args) => {
-    // 样本数量不能为0
     if (args.length === 0) throw new Error('样本数量不能为0')
+    // @ts-ignore
     const mean = operators.avg(...args)
     return args.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / args.length
   },
-  // fact(数字) 计算阶乘
+
+  /**
+   * fact(数字) 计算阶乘
+   * @param {number} x - Number to calculate factorial
+   * @returns {number} Factorial value
+   * @throws {Error} If number is negative
+   */
   fact: (x) => {
-    // 不能为负数
     if (x < 0) throw new Error('阶乘不能为负数')
     if (x === 0 || x === 1) return 1
     let result = 1
@@ -100,7 +145,13 @@ const operators = {
   },
 }
 
-// 简单计算器
+/**
+ * 简单计算器
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
+ */
 export function translate(input, segment, env) {
   if (!input.startsWith('/js') && !input.startsWith('/calc')) {
     return []

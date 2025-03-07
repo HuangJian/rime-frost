@@ -10,7 +10,6 @@
  * by @[HuangJian](https://github.com/HuangJian)
  */
 
-
 // 此正则表达式使用 Unicode 属性转义检测字符串中是否含有标点符号和空格。
 // \p{P} 匹配所有的标点符号。'u' 标志启用 Unicode 模式。
 const regPunctuationsAndSpaces = /[\s\p{P}]/gu
@@ -30,6 +29,12 @@ const regHasNonAlphanumericPuncuationSpace = /[^\w\p{P}\s]/u
 // 包含空格的正则表达式
 const reghasSpace = /\s/
 
+/**
+ * Filter candidates to apply automatic capitalization rules
+ * @param {Array<Candidate>} candidates - The candidates to process
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Processed candidates with appropriate capitalization
+ */
 export function filter(candidates, env) {
   const code = env.engine.context.input // 输入码
   const codeLen = code.length
@@ -79,9 +84,18 @@ export function filter(candidates, env) {
   })
 }
 
-export function init() {
+/**
+ * Initialize the filter
+ * @param {Environment} env - The Rime environment
+ */
+export function init(env) {
   console.log('autocap_filter.js init')
 }
-export function finit() {
+
+/**
+ * Clean up the filter
+ * @param {Environment} env - The Rime environment
+ */
+export function finit(env) {
   console.log('autocap_filter.js finit')
 }

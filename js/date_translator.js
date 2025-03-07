@@ -3,8 +3,13 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
+/** @type {Object.<string, string>} */
 const keys = {}
 
+/**
+ * Initialize the date translator
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log(`date translator init`)
 
@@ -17,10 +22,21 @@ export function init(env) {
   keys.timestamp = config.getString(namespace + '/timestamp') || 'ts'
 }
 
+/**
+ * Clean up the date translator
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log(`date translator finit`)
 }
 
+/**
+ * Translate date and time related input
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
+ */
 export function translate(input, segment, env) {
   const now = new Date()
 

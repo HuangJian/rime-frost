@@ -62,6 +62,10 @@ function loadCustomWordsIntoSet(config, key) {
   }
 }
 
+/**
+ * Initialize the filter with configuration
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   const config = env.engine.schema.config
   const namespace = env.namespace.replace(/^\*/, '')
@@ -81,6 +85,12 @@ export function init(env) {
   }
 }
 
+/**
+ * Filter candidates to postpond some short English words
+ * @param {Array<Candidate>} candidates - The candidates to re-order
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Re-ordered candidates
+ */
 export function filter(candidates, env) {
   const code = env.engine.context.input
   if (!words.has(code)) return candidates

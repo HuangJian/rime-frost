@@ -49,15 +49,19 @@ cand.preedit 是经过 translator/preedit_format 转换后的编码
 * by @[HuangJian](https://github.com/HuangJian)
 */
 
-let pinMap = null
+/** @type {Map<string, Array<string>>} Mapping of input codes to pinned candidates */
+const pinMap = new Map()
 
+/**
+ * Initialize the filter with configuration
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('pin_cand_filter init')
   const namespace = env.namespace.replace(/^\*/, '')
 
-  if (pinMap) return // 已经初始化过了
+  if (pinMap.entries.length > 0) return // 已经初始化过了
 
-  pinMap = new Map()
   const list = env.engine.schema.config.getList(namespace)
   if (!list || list.getSize() === 0) return
 
@@ -123,7 +127,7 @@ export function init(env) {
           // 只在没有明确定义此简码时才生成，已有的追加，没有的直接赋值
           if (p !== '' && !set.has(p)) {
             if (pinMap.has(p)) {
-              texts.split(delimiter).forEach((text) => {
+              words.forEach((text) => {
                 pinMap.get(p).push(text)
               })
             } else {
@@ -136,6 +140,12 @@ export function init(env) {
   }
 }
 
+/**
+ * Filter candidates to pin the matched ones to the top
+ * @param {Array<Candidate>} candidates - Array of candidates to re-order
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} The re-ordered candidates
+ */
 export function filter(candidates, env) {
   // 当前输入框的 preedit，未经过方案 translator/preedit_format 转换
   // 输入 nihaoshij 则为 nihaoshij，选择了「你好」后变成 你好shij
@@ -212,7 +222,11 @@ export function filter(candidates, env) {
   return [...yields, ...pinedCandidates, ...others, ...candidates.slice(i)]
 }
 
-// 给 pined 几个占位元素，后面直接置换为实际的candidate， 确保 pined 与 words 顺序一致
+/**
+ * 给 pined 几个占位元素，后面直接置换为实际的candidate， 确保 pined 与 words 顺序一致
+ * @param {Array<{text:string, candidate:Candidate}>} pinedHolder
+ * @param {Array<string>} words
+ */
 function addPlaceHoldersToPinedHolder(pinedHolder, words) {
   words
     .filter((word) => !pinedHolder.some((it) => it.text === word))

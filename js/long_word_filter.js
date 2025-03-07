@@ -7,21 +7,34 @@
 //  by @[HuangJian](https://github.com/HuangJian)
 
 // 提升 maxPromoteeSize 个词语，插入到第 startingIndex 个位置，默认 2、4。
+
+/** @type {number} Number of candidates to promote */
 let maxPromoteeSize = 2
+
+/** @type {number} Position to insert promoted candidates */
 let startingIndex = 4
 
+/**
+ * Initialize the filter with configuration
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('long_word_filter.js init')
   const config = env.engine.schema.config
-  const namespace = env.namespace.replace(/^\*/, '')
-
   // 不能写成 maxPromoteeSize = config.getInt(namespace + '/count') || 2
   // 因为 config.getInt() 可能返回 0，从而导致 maxPromoteeSize 被设置为 2。
-  maxPromoteeSize = getConfigIntValueOrDefault(config, namespace + '/count', 2)
-  startingIndex = getConfigIntValueOrDefault(config, namespace + '/idx', 4)
+  maxPromoteeSize = getConfigIntValueOrDefault(config, env.namespace + '/count', 2)
+  startingIndex = getConfigIntValueOrDefault(config, env.namespace + '/idx', 4)
 }
 
-// 从配置文件中获取 int 值，如果没有则返回默认值。
+
+/**
+ * Get integer value from config with fallback
+ * @param {Config} config - Rime configuration object
+ * @param {string} key - Configuration key to look up
+ * @param {number} defaultValue - Default value if not found
+ * @returns {number} The configured or default value
+ */
 function getConfigIntValueOrDefault(config, key, defaultValue) {
   const value = config.getInt(key)
   if (value === undefined || value === null) {
@@ -30,6 +43,11 @@ function getConfigIntValueOrDefault(config, key, defaultValue) {
   return value
 }
 
+/**
+ * Filter and reorder candidates to prioritize longer words
+ * @param {Array<Candidate>} candidates - Array of candidates to filter
+ * @returns {Array<Candidate>} Reordered candidates with longer words promoted
+ */
 export function filter(candidates) {
   let firstWordLength = 0 // 记录第一个候选词的长度，提前的候选词至少要比第一个候选词长
 
@@ -64,5 +82,6 @@ export function filter(candidates) {
   })
   ret.push(...shortWords)
   ret.push(...others)
+
   return ret
 }

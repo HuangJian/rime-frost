@@ -7,17 +7,32 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
-import { KeyRepr, ProcessResult } from './lib/rime.js'
+import { KeyRepr } from './lib/rime.js'
 
+/**
+ * Initialize the processor
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('slash.js init')
 }
+
+/**
+ * Clean up when processor is unloaded
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log('slash.js finit')
 }
 
 let direction = KeyRepr.Down
 
+/**
+ * Process key events to switch between candidates
+ * @param {KeyEvent} keyEvent - The key event to process
+ * @param {Environment} env - The Rime environment
+ * @returns {ProcessResult} Result indicating if key was handled
+ */
 export function process(keyEvent, env) {
   const context = env.engine.context
   if (context.hasMenu() || context.isComposing()) {
@@ -29,9 +44,9 @@ export function process(keyEvent, env) {
         direction = KeyRepr.Down
       }
       env.engine.processKey(direction)
-      return ProcessResult.kAccepted
+      return 'kAccepted'
     }
   }
 
-  return ProcessResult.kNoop
+  return 'kNoop'
 }

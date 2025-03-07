@@ -3,8 +3,12 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
-import { getPickingCandidate, ProcessResult } from './lib/rime.js'
+import { getPickingCandidate } from './lib/rime.js'
 
+/**
+ * Move cursor left one position using AppleScript
+ * @param {Environment} env - The Rime environment
+ */
 function moveCursorToLeftForMacOS(env) {
   // 如果失效，在 Accessibility 里删除 Squirrel，然后重新添加
   // Accessibility 打开路径： System Preferences -> Security & Privacy -> Privacy -> Accessibility
@@ -17,6 +21,7 @@ function moveCursorToLeftForMacOS(env) {
   env.popen(osascript)
 }
 
+/** @type {Record<string, string>} Mapping of opening symbols to their closing pairs */
 const pairTable = {
   '`': '`',
   '"': '"',
@@ -39,18 +44,33 @@ const pairTable = {
   '《': '》',
 }
 
+/**
+ * Initialize the processor
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('pairs.js init')
 }
+
+/**
+ * Clean up when processor is unloaded
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log('pairs.js finit')
 }
 
+/**
+ * Process key events to handle paired symbol completion
+ * @param {KeyEvent} keyEvent - The key event to process
+ * @param {Environment} env - The Rime environment
+ * @returns {ProcessResult} Result indicating if key was handled
+ */
 export function process(keyEvent, env) {
   const context = env.engine.context
   if (context.hasMenu() || context.isComposing()) {
     const pickingCandidate = getPickingCandidate(keyEvent, context.lastSegment)
-    if (!pickingCandidate) return ProcessResult.kNoop
+    if (!pickingCandidate) return 'kNoop'
 
     const symbol = pickingCandidate.text
     const pairedText = pairTable[symbol]
@@ -60,9 +80,9 @@ export function process(keyEvent, env) {
 
       moveCursorToLeftForMacOS(env)
 
-      return ProcessResult.kAccepted
+      return 'kAccepted'
     }
   }
 
-  return ProcessResult.kNoop
+  return 'kNoop'
 }

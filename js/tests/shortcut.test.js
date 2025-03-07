@@ -1,7 +1,7 @@
 // usage: `./qjs ./shortcut.test.js`
 
 import * as shortcut from '../shortcut.js'
-import { KeyRepr, ProcessResult } from '../lib/rime.js'
+import { KeyRepr } from '../lib/rime.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -76,31 +76,31 @@ seg.prompt = '〔快捷指令〕'
 env.engine.context.lastSegment = seg
 
 let processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kAccepted, 'Should accept valid shortcut command')
+assertEquals(processResult, 'kAccepted', 'Should accept valid shortcut command')
 console.log('---------------------------------------')
 
 // Test 6: Process function with number keys
 keyEvent = { repr: '1' }
 processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kAccepted, 'Should accept number key for first candidate')
+assertEquals(processResult, 'kAccepted', 'Should accept number key for first candidate')
 
 keyEvent = { repr: '2' }
 processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kAccepted, 'Should accept number key for second candidate')
+assertEquals(processResult, 'kAccepted', 'Should accept number key for second candidate')
 
 keyEvent = { repr: '0' }
 processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kNoop, 'Should noop for out of range candidate')
+assertEquals(processResult, 'kNoop', 'Should noop for out of range candidate')
 console.log('---------------------------------------')
 
 // Test 7: Process function with invalid segment
 env.engine.context.lastSegment = null
 processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kNoop, 'Should noop when no valid segment')
+assertEquals(processResult, 'kNoop', 'Should noop when no valid segment')
 
 env.engine.context.lastSegment = { prompt: 'Not a shortcut prompt' }
 processResult = shortcut.process(keyEvent, env)
-assertEquals(processResult, ProcessResult.kNoop, 'Should noop when not a shortcut prompt')
+assertEquals(processResult, 'kNoop', 'Should noop when not a shortcut prompt')
 console.log('---------------------------------------')
 
 // Print test summary

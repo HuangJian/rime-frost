@@ -18,6 +18,11 @@ const charsets = {
   Compat: { first: 0x2f800, last: 0x2fa1f }, // CJK Compatibility Ideographs, like 〇 (U+2F800), 一 (U+2F801)
 }
 
+/**
+ * Check if a character is a CJK extension character
+ * @param {string} char - The character to check
+ * @returns {boolean} True if the character is a CJK extension character
+ */
 function isCjkExt(char) {
   const charPoint = char.codePointAt(0)
   return [
@@ -31,13 +36,28 @@ function isCjkExt(char) {
   )
 }
 
+/**
+ * Initialize the filter
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('charset_filter init')
 }
 
+/**
+ * Clean up the filter
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log('charset_filter finit')
 }
+
+/**
+ * Filter out candidates containing CJK extension characters
+ * @param {Array<Candidate>} candidates - The candidates to filter
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Filtered candidates
+ */
 export function filter(candidates, env) {
   return candidates.filter((item) => {
     return !Array.from(item.text).some(isCjkExt)

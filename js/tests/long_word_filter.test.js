@@ -27,7 +27,7 @@ const env = {
       }
     }
   },
-  namespace: '*test'
+  namespace: 'test'
 }
 
 // Test 1: Init function sets configuration values correctly

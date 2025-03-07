@@ -6,19 +6,26 @@ function formatInfo(info) {
   return info.replace(/\\n/g, '\n\t\t')
 }
 
+/**
+ * 字典树对象，用于存储和查询英文词汇的拼中文释义
+ * @type {Trie}
+ */
 let trie
 
+/**
+ * 初始化插件
+ * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
+ * @description 加载字典数据，优先从二进制文件加载以提高性能，如果二进制文件不存在则从文本文件加载并生成二进制文件
+ */
 export function init(env) {
   console.log('en2cn filter init')
 
+  // @ts-expect-error for unit test
   trie = env.trie || new Trie()
-
-  const txtPath =
-    env.en2cnTextFilePath || // for unit test
-    `${env.userDataDir}/../lua/data/ecdict.txt`
-  const binPath =
-    env.en2cnBinaryFilePath || // for unit test
-    `${env.userDataDir}/../js/data/ecdict.bin`
+  // @ts-expect-error for unit test
+  const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/../lua/data/ecdict.txt`
+  // @ts-expect-error for unit test
+  const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/ecdict.bin`
 
   let tick = Date.now()
   if (env.fileExists(binPath)) {
@@ -33,10 +40,22 @@ export function init(env) {
   }
 }
 
+/**
+ * 插件终止函数
+ * @param {Environment} env - 环境对象
+ * @description 在输入法退出或重新部署时调用，用于清理资源
+ */
 export function finit(env) {
   console.log('en2cn filter finit')
 }
 
+/**
+ * 候选项过滤器主函数
+ * @param {Array<Candidate>} candidates - 候选项数组
+ * @param {Environment} env - 环境对象，包含引擎上下文等信息
+ * @returns {Array<Candidate>} 处理后的候选项数组
+ * @description 为英文候选项添加中文释义，并处理中文翻译的快捷选择功能
+ */
 export function filter(candidates, env) {
   const existingWords = new Map()
   // 从候选项中找到最后一个英文单词的位置，将新查找到的单词插入到该位置之后

@@ -8,10 +8,14 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
-import { ProcessResult, KeyRepr } from './lib/rime.js'
+import { KeyRepr } from './lib/rime.js'
 
-let keys = {}
+const keys = {}
 
+/**
+ * Initialize the processor
+ * @param {Environment} env - The Rime environment
+ */
 export function init(env) {
   console.log('select_character.js init')
 
@@ -26,20 +30,35 @@ export function init(env) {
   }
 }
 
+/**
+ * Clean up when processor is unloaded
+ * @param {Environment} env - The Rime environment
+ */
 export function finit(env) {
   console.log('select_character.js finit')
 }
 
+/**
+ * Process key events to handle paired symbol completion
+ * @param {KeyEvent} keyEvent - The key event to process
+ * @param {Environment} env - The Rime environment
+ * @returns {ProcessResult} Result indicating if key was handled
+ */
 export function process(keyEvent, env) {
-  if (keyEvent.release || !keys.firstKey || !keys.lastKey) return ProcessResult.kNoop
+  if (keyEvent.release || !keys.firstKey || !keys.lastKey) return 'kNoop'
 
   const context = env.engine.context
-  if (!context.isComposing() && !context.hasMenu()) return ProcessResult.kNoop
+  if (!context.isComposing() && !context.hasMenu()) return 'kNoop'
 
+  /**
+   * Commit text to the input context
+   * @param {string} text - The text to commit
+   * @returns {ProcessResult} Result indicating if key was handled
+   */
   const commitText = (text) => {
     env.engine.commitText(text)
     context.clear()
-    return ProcessResult.kAccepted
+    return 'kAccepted'
   }
 
   const text = context.lastSegment?.selectedCandidate?.text || context.input || ''
@@ -54,5 +73,5 @@ export function process(keyEvent, env) {
     return commitText(text)
   }
 
-  return ProcessResult.kNoop
+  return 'kNoop'
 }

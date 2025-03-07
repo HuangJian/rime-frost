@@ -3,6 +3,7 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
+/** @type {Array<[string, string]>} */
 const menus = [
   ['帮助菜单', '→ /help'],
   ['快捷指令', '→ /deploy /screenshot'],
@@ -19,14 +20,29 @@ const menus = [
   ['中文数字', '→ R快捷键，如`R666`候选`六百六十六元整`'],
 ]
 
-export function init() {
+/**
+ * Initialize the help menu translator
+ * @param {Environment} env - The Rime environment
+ */
+export function init(env) {
   console.log('help_menu.js init')
 }
 
-export function finit() {
+/**
+ * Clean up the help menu translator
+ * @param {Environment} env - The Rime environment
+ */
+export function finit(env) {
   console.log('help_menu.js finit')
 }
 
+/**
+ * Translate help menu related input
+ * @param {string} input - The input string to translate
+ * @param {Segment} segment - The input segment
+ * @param {Environment} env - The Rime environment
+ * @returns {Array<Candidate>} Array of translation candidates
+ */
 export function translate(input, segment, env) {
   if (input.length < 3 || !'/help'.startsWith(input)) return []
 
