@@ -94,5 +94,26 @@ equals = filtered[0].text === '支持'
 assertEquals(equals, true, 'filter: zh/ch/sh special cases should work')
 console.log('---------------------------------------')
 
+// Test 6: Test filtering unpinned candidates
+env.engine.context.input = 'chongfu'
+let unpinnedCandidates = [
+  new Candidate('abc', 0, 4, '重复', ''),
+  new Candidate('abc', 0, 4, '冲突', ''),
+]
+unpinnedCandidates[0].preedit = 'chong fu'
+unpinnedCandidates[1].preedit = 'chong tu'
+filtered = pinCandFilter.filter(unpinnedCandidates, env)
+assertEquals(
+  filtered[0].text,
+  '重复',
+  'filter: unpinned candidates should not be affected',
+)
+assertEquals(
+  filtered[1].text,
+  '冲突',
+  'filter: unpinned candidates should not be affected',
+)
+console.log('---------------------------------------')
+
 // Print test summary
 console.log(`\nTest Summary: ${passedTests}/${totalTests} tests passed`)

@@ -219,7 +219,7 @@ export function filter(candidates, env) {
 
   const pinedCandidates = pinedHolder.map((it) => it.candidate).filter((it) => it)
   // yield pined others 及后续的候选项
-  return [...yields, ...pinedCandidates, ...others, ...candidates.slice(i)]
+  return [...yields, ...pinedCandidates, ...others, ...candidates.slice(i + 1)]
 }
 
 /**
