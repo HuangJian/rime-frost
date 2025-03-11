@@ -4,7 +4,7 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
-import { getPickingCandidate } from "./lib/rime.js"
+import { getPickingCandidate } from './lib/rime.js'
 
 const shortcuts = [
   {
@@ -33,62 +33,69 @@ const shortcuts = [
 ]
 
 /**
- * Initialize the translator/processor
- * @param {Environment} env - The Rime environment
+ * 快捷指令
+ * @implements {Processor}
+ * @implements {Translator}
  */
-export function init(env) {
-  console.log('shortcut.js init')
-}
-
-/**
- * Clean up when translator/processor is unloaded
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('shortcut.js finit')
-}
-
-/**
- * Translate input to the shortcut commands
- * @param {string} input - The input string to translate
- * @param {Segment} segment - The input segment
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Array of translation candidates
- */
-export function translate(input, segment, env) {
-  if (input.length < 3 || input[0] !== '/') return []
-
-  const lowerInput = input.toLowerCase()
-  const candidates = shortcuts
-    .filter((item) => item.input.startsWith(lowerInput))
-    .map((item) => new Candidate('shortcut', segment.start, segment.end, item.input, item.desc, 999))
-
-  if (candidates.length > 0) {
-    segment.prompt = '〔快捷指令〕'
-  }
-  return candidates
-}
-
-/**
- * Process key events to execute shortcut command
- * @param {KeyEvent} keyEvent - The key event to process
- * @param {Environment} env - The Rime environment
- * @returns {ProcessResult} Result indicating if key was handled
- */
-export function process(keyEvent, env) {
-  const segment = env.engine.context.lastSegment
-  if (!segment?.prompt?.includes('〔快捷指令〕')) return 'kNoop'
-
-  const pickingCandidate = getPickingCandidate(keyEvent, segment)
-  if (!pickingCandidate) return 'kNoop'
-
-  const matchedShortcut = shortcuts.find((item) => item.input === pickingCandidate.text)
-  if (matchedShortcut) {
-    // Execute the command
-    env.popen(matchedShortcut.command)
-    env.engine.context.clear()
-    return 'kAccepted'
+export class Shortcut {
+  /**
+   * Initialize the translator/processor
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('shortcut.js init')
   }
 
-  return 'kNoop'
+  /**
+   * Clean up when translator/processor is unloaded
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('shortcut.js finit')
+  }
+
+  /**
+   * Translate input to the shortcut commands
+   * @param {string} input - The input string to translate
+   * @param {Segment} segment - The input segment
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Array of translation candidates
+   */
+  translate(input, segment, env) {
+    if (input.length < 3 || input[0] !== '/') return []
+
+    const lowerInput = input.toLowerCase()
+    const candidates = shortcuts
+      .filter((item) => item.input.startsWith(lowerInput))
+      .map((item) => new Candidate('shortcut', segment.start, segment.end, item.input, item.desc, 999))
+
+    if (candidates.length > 0) {
+      segment.prompt = '〔快捷指令〕'
+    }
+    return candidates
+  }
+
+  /**
+   * Process key events to execute shortcut command
+   * @param {KeyEvent} keyEvent - The key event to process
+   * @param {Environment} env - The Rime environment
+   * @returns {ProcessResult} Result indicating if key was handled
+   */
+  process(keyEvent, env) {
+    const segment = env.engine.context.lastSegment
+    if (!segment?.prompt?.includes('〔快捷指令〕')) return 'kNoop'
+
+    const pickingCandidate = getPickingCandidate(keyEvent, segment)
+    if (!pickingCandidate) return 'kNoop'
+
+    const matchedShortcut = shortcuts.find((item) => item.input === pickingCandidate.text)
+    if (matchedShortcut) {
+      // Execute the command
+      env.popen(matchedShortcut.command)
+      env.engine.context.clear()
+      return 'kAccepted'
+    }
+
+    return 'kNoop'
+  }
 }

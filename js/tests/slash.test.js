@@ -2,7 +2,7 @@
 
 // @ts-nocheck
 
-import * as slash from '../slash.js'
+import { SlashProcessor } from '../slash.js'
 import { KeyRepr } from '../lib/rime.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
@@ -35,8 +35,8 @@ const env = {
 }
 
 // Test 1: Init and finit functions
-slash.init(env)
-slash.finit(env)
+const slash = new SlashProcessor(env)
+slash.finalizer(env)
 console.log('Test 1: Init and finit functions - Passed')
 console.log('---------------------------------------')
 

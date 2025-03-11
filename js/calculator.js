@@ -5,19 +5,96 @@
 // by @[HuangJian](https://github.com/HuangJian)
 
 /**
- * Initialize the calculator translator
- * @param {Environment} env - The Rime environment
+ * 简单计算器
+ * @implements {Translator}
  */
-export function init(env) {
-  console.log(`calculator translator init`)
-}
+export class Calculator {
+  /**
+   * Initialize the calculator translator
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log(`calculator translator init`)
+  }
 
-/**
- * Clean up the calculator translator
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log(`calculator translator finit`)
+  /**
+   * Clean up the calculator translator
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log(`calculator translator finit`)
+  }
+
+  /**
+   * 简单计算器
+   * @param {string} input - The input string to translate
+   * @param {Segment} segment - The input segment
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Array of translation candidates
+   */
+  translate(input, segment, env) {
+    if (!input.startsWith('/js') && !input.startsWith('/calc')) {
+      return []
+    }
+
+    segment.prompt = '〔数学计算〕 /calc 或 /js 触发'
+
+    // 提取算式
+    const express = input.replace(/^(\/calc|\/js)/, '').trim()
+    // 算式长度 < 1 直接终止(没有计算意义)
+    if (express.length < 1) return []
+    const processedExpr = express
+      // 替换[0-9]!字符为fact([0-9])以实现阶乘
+      .replace(/([0-9]+)!/g, 'fact($1)')
+      // 替换 e 为Math.E，需要其前后字符均不为数字或字母
+      .replace(/(?<!\w)e(?!\w)/gi, 'operators.E')
+      // 替换 pi 为Math.PI，需要其前后字符均不为数字或字母
+      .replace(/(?<!\w)pi(?!\w)/gi, 'operators.PI')
+      // Replace all operators function calls
+      .replace(new RegExp(`(?<!\\w)(${Object.keys(operators).join('|')})\\(`, 'g'), (match, p1) => {
+        return `operators.${p1}(`
+      })
+
+    const candidates = []
+    try {
+      // Using Function constructor with Math object and operators
+      const calculate = new Function('operators', ` return ${processedExpr}; `)
+      const result = calculate(operators)
+
+      // Handle null and undefined results
+      const resultStr = result === null || result === undefined || isNaN(result) ? 'null' : result.toString()
+
+      candidates.push(new Candidate(input, segment.start, segment.end, resultStr, ''))
+      candidates.push(new Candidate(input, segment.start, segment.end, `${express}=${resultStr}`, ''))
+      candidates.push(new Candidate(input, segment.start, segment.end, `\`${express}=${resultStr}\``, ''))
+    } catch (error) {
+      candidates.push(new Candidate(input, segment.start, segment.end, express, '解析失败: ' + error.message))
+      candidates.push(new Candidate(input, segment.start, segment.end, processedExpr, '入参'))
+    }
+
+    candidates.push(
+      new Candidate(
+        input,
+        segment.start,
+        segment.end,
+        '〔支持常数〕',
+        'e = 2.718281828459, pi(π) = 3.1415926535898',
+      ),
+    )
+
+    const hints =
+      'random(随机数), avg(平均), var(方差), fact(阶乘)\n' +
+      '\t\tabs(绝对值), ceil(向上取整), floor(向下取整), round(四舍五入), sign(符号)\n' +
+      '\t\tmin(最小值), max(最大值), pow(幂), hypot(求直角三角形斜边)\n' +
+      '\t\texp(自然对数), log(底数为10的对数), log10(底数为10的对数), log2(底数为2的对数)\n' +
+      '\t\tclz32(32位整数的前导零个数), expm1(指数减1), log1p(1+对数)\n' +
+      '\t\tcbrt(立方根), imul(整数乘法), fround(单精度浮点数), trunc(截断整数)\n' +
+      '\t\tsin(正弦), cos(余弦), tan(正切), asin(反正弦), acos(反余弦), atan(反正切)\n' +
+      '\t\tsinh(双曲正弦), cosh(双曲余弦), tanh(双曲正切), atan2(反正切), atanh(反双曲正切)'
+    candidates.push(new Candidate(input, segment.start, segment.end, '〔支持函数〕', hints))
+
+    return candidates
+  }
 }
 
 /**
@@ -143,78 +220,4 @@ const operators = {
     }
     return result
   },
-}
-
-/**
- * 简单计算器
- * @param {string} input - The input string to translate
- * @param {Segment} segment - The input segment
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Array of translation candidates
- */
-export function translate(input, segment, env) {
-  if (!input.startsWith('/js') && !input.startsWith('/calc')) {
-    return []
-  }
-
-  segment.prompt = '〔数学计算〕 /calc 或 /js 触发'
-
-  // 提取算式
-  const express = input.replace(/^(\/calc|\/js)/, '').trim()
-  // 算式长度 < 1 直接终止(没有计算意义)
-  if (express.length < 1) return []
-  const processedExpr = express
-    // 替换[0-9]!字符为fact([0-9])以实现阶乘
-    .replace(/([0-9]+)!/g, 'fact($1)')
-    // 替换 e 为Math.E，需要其前后字符均不为数字或字母
-    .replace(/(?<!\w)e(?!\w)/gi, 'operators.E')
-    // 替换 pi 为Math.PI，需要其前后字符均不为数字或字母
-    .replace(/(?<!\w)pi(?!\w)/gi, 'operators.PI')
-    // Replace all operators function calls
-    .replace(
-      new RegExp(`(?<!\\w)(${Object.keys(operators).join('|')})\\(`, 'g'),
-      (match, p1) => {
-        return `operators.${p1}(`
-      },
-    )
-
-  const candidates = []
-  try {
-    // Using Function constructor with Math object and operators
-    const calculate = new Function('operators', ` return ${processedExpr}; `)
-    const result = calculate(operators)
-
-    // Handle null and undefined results
-    const resultStr = result === null || result === undefined || isNaN(result) ? 'null' : result.toString()
-
-    candidates.push(new Candidate(input, segment.start, segment.end, resultStr, ''))
-    candidates.push(new Candidate(input, segment.start, segment.end, `${express}=${resultStr}`, ''))
-    candidates.push(new Candidate(input, segment.start, segment.end, `\`${express}=${resultStr}\``, ''))
-  } catch (error) {
-    candidates.push(new Candidate(input, segment.start, segment.end, express, '解析失败: ' + error.message))
-    candidates.push(new Candidate(input, segment.start, segment.end, processedExpr, '入参'))
-  }
-
-  candidates.push(
-    new Candidate(
-      input,
-      segment.start,
-      segment.end,
-      '〔支持常数〕',
-      'e = 2.718281828459, pi(π) = 3.1415926535898',
-    ),
-  )
-
-  const hints =
-    'random(随机数), avg(平均), var(方差), fact(阶乘)\n' +
-    '\t\tabs(绝对值), ceil(向上取整), floor(向下取整), round(四舍五入), sign(符号)\n' +
-    '\t\tmin(最小值), max(最大值), pow(幂), hypot(求直角三角形斜边)\n' +
-    '\t\texp(自然对数), log(底数为10的对数), log10(底数为10的对数), log2(底数为2的对数)\n' +
-    '\t\tclz32(32位整数的前导零个数), expm1(指数减1), log1p(1+对数)\n' +
-    '\t\tcbrt(立方根), imul(整数乘法), fround(单精度浮点数), trunc(截断整数)\n' +
-    '\t\tsin(正弦), cos(余弦), tan(正切), asin(反正弦), acos(反余弦), atan(反正切)\n' +
-    '\t\tsinh(双曲正弦), cosh(双曲余弦), tanh(双曲正切), atan2(反正切), atanh(反双曲正切)'
-  candidates.push(new Candidate(input, segment.start, segment.end, '〔支持函数〕', hints))
-
-  return candidates
 }

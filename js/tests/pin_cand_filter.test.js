@@ -1,6 +1,6 @@
 // usage: `./qjs ./pin_cand_filter.test.js`
 
-import * as pinCandFilter from '../pin_cand_filter.js'
+import { PinCandidatesFilter } from '../pin_cand_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -35,14 +35,14 @@ const env = {
 }
 
 // Test 1: Test initialization
-pinCandFilter.init(env)
+const instance = new PinCandidatesFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: Basic filtering with single character
 env.engine.context.input = 'le'
 let candidates = [new Candidate('abc', 0, 2, '了', '')]
 candidates[0].preedit = 'le'
-let filtered = pinCandFilter.filter(candidates, env)
+let filtered = instance.filter(candidates, env)
 assertEquals(filtered[0].text, '了', 'filter: single character pinyin mapping')
 console.log('---------------------------------------')
 
@@ -55,7 +55,7 @@ let multiCandidates = [
   new Candidate('abc', 0, 2, '他', ''),
 ]
 multiCandidates.forEach((cand) => (cand.preedit = 'ta'))
-filtered = pinCandFilter.filter(multiCandidates, env)
+filtered = instance.filter(multiCandidates, env)
 assertEquals(
   filtered[0].text,
   '他',
@@ -80,7 +80,7 @@ console.log('---------------------------------------')
 env.engine.context.input = 'nihao'
 let compoundCandidates = [new Candidate('abc', 0, 5, '你好', '')]
 compoundCandidates[0].preedit = 'ni hao'
-filtered = pinCandFilter.filter(compoundCandidates, env)
+filtered = instance.filter(compoundCandidates, env)
 equals = filtered[0].text === '你好'
 assertEquals(equals, true, 'filter: compound words with spaces should work')
 console.log('---------------------------------------')
@@ -89,7 +89,7 @@ console.log('---------------------------------------')
 env.engine.context.input = 'zhichi'
 let specialCandidates = [new Candidate('abc', 0, 6, '支持', '')]
 specialCandidates[0].preedit = 'zhi chi'
-filtered = pinCandFilter.filter(specialCandidates, env)
+filtered = instance.filter(specialCandidates, env)
 equals = filtered[0].text === '支持'
 assertEquals(equals, true, 'filter: zh/ch/sh special cases should work')
 console.log('---------------------------------------')
@@ -102,7 +102,7 @@ let unpinnedCandidates = [
 ]
 unpinnedCandidates[0].preedit = 'chong fu'
 unpinnedCandidates[1].preedit = 'chong tu'
-filtered = pinCandFilter.filter(unpinnedCandidates, env)
+filtered = instance.filter(unpinnedCandidates, env)
 assertEquals(
   filtered[0].text,
   '重复',

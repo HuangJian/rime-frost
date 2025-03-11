@@ -597,20 +597,19 @@ interface Environment {
  * Interface for JavaScript module lifecycle in Rime
  * @namespace Module
  */
-interface Module {
+declare class Module {
   /**
-   * Initialization function called when module is loaded
+   * Constructor function called when module is loaded
    * @param env - The runtime environment
-   * @returns {void}
    */
-  init?(env: Environment): void
+  constructor(env: Environment)
 
   /**
    * Cleanup function called when module is unloaded
    * @param env - The runtime environment
    * @returns {void}
    */
-  finit?(env: Environment): void
+  finalizer?(env: Environment): void
 }
 
 /**
@@ -626,12 +625,12 @@ type ProcessResult = 'kRejected' | 'kAccepted' | 'kNoop'
  * Represents a Rime input processor
  * @namespace Processor
  */
-interface Processor extends Module {
+declare class Processor extends Module {
   /**
    * Process a keyboard input event
    * @param keyEvent - The key event to process
    * @param env - The runtime environment
-   * @returns {ProcessResult} 0 for rejected, 1 for accepted, 2 for noop
+   * @returns {ProcessResult} The processing result
    */
   process(keyEvent: KeyEvent, env: Environment): ProcessResult
 }
@@ -640,27 +639,27 @@ interface Processor extends Module {
  * Represents a Rime translator module for converting input to candidates
  * @namespace Translator
  */
-interface Translator extends Module {
+declare class Translator extends Module {
   /**
-   * Query for candidates matching the input
+   * Translate to candidates by the input
    * @param input - The input string to translate
    * @param segment - The current segment being translated
    * @param env - The runtime environment
-   * @returns {Array<Candidate>} Array of matching candidates
+   * @returns {Array<Candidate>} Array of translated candidates
    */
-  query(input: string, segment: Segment, env: Environment): Array<Candidate>
+  translate(input: string, segment: Segment, env: Environment): Array<Candidate>
 }
 
 /**
  * Represents a Rime filter module for processing candidates
  * @namespace Filter
  */
-interface Filter extends Module {
+declare class Filter extends Module {
   /**
    * Apply filtering to a list of candidates
    * @param candidates - Array of candidates to filter
    * @param env - The runtime environment
    * @returns {Array<Candidate>} Filtered array of candidates
    */
-  apply(candidates: Array<Candidate>, env: Environment): Array<Candidate>
+  filter(candidates: Array<Candidate>, env: Environment): Array<Candidate>
 }

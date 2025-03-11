@@ -1,6 +1,6 @@
 // usage: `./qjs ./en2cn.test.js`
 
-import * as en2cn from '../en2cn.js'
+import { En2CnFilter } from '../en2cn.js'
 import { Trie } from './trie.js'
 import { assertEquals } from './testutil.js'
 
@@ -47,7 +47,7 @@ const env = {
 
 // Test 1: Init builds the dictionary and shows correct candidates via filter.
 // Call init to load the sample dictionary.
-en2cn.init(env)
+const en2cn = new En2CnFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: Filter with empty candidate list, input "test" should add candidate for "testword".

@@ -182,41 +182,47 @@ const path = 'recognizer/patterns/number'
 let keyword = null
 
 /**
- * 初始化数字转换模块
- * @param {Object} env - Rime 输入法引擎环境对象
- * @description 从配置中获取触发前缀，默认为 'R'
+ * 数字、金额大写翻译器
+ * @implements {Translator}
  */
-export function init(env) {
-  console.log(`number translator init`)
+export class NumberTranslator {
+  /**
+   * 初始化数字转换模块
+   * @param {Object} env - Rime 输入法引擎环境对象
+   * @description 从配置中获取触发前缀，默认为 'R'
+   */
+  constructor(env) {
+    console.log(`number translator init`)
 
-  // 获取 recognizer/patterns/number 的第 2 个字符作为触发前缀
-  const pattern = env.engine.schema.config.getString(path) || '^R'
-  keyword = pattern.substring(1, 2)
-}
+    // 获取 recognizer/patterns/number 的第 2 个字符作为触发前缀
+    const pattern = env.engine.schema.config.getString(path) || '^R'
+    keyword = pattern.substring(1, 2)
+  }
 
-/**
- * 清理数字转换模块
- * @param {Environment} env - Rime 输入法引擎环境对象
- */
-export function finit(env) {
-  console.log(`number translator finit`)
-}
+  /**
+   * 清理数字转换模块
+   * @param {Environment} env - Rime 输入法引擎环境对象
+   */
+  finalizer(env) {
+    console.log(`number translator finit`)
+  }
 
-/**
- * 执行数字转换
- * @param {string} input - 输入字符串
- * @param {Segment} segment - 切分片段对象
- * @param {Object} env - Rime 输入法引擎环境对象
- * @returns {Array<Candidate>} 候选项数组
- * @description 将以触发前缀开头的数字转换为对应的中文表示
- */
-export function translate(input, segment, env) {
-  if (!keyword || input[0] !== keyword) return []
+  /**
+   * 执行数字转换
+   * @param {string} input - 输入字符串
+   * @param {Segment} segment - 切分片段对象
+   * @param {Object} env - Rime 输入法引擎环境对象
+   * @returns {Array<Candidate>} 候选项数组
+   * @description 将以触发前缀开头的数字转换为对应的中文表示
+   */
+  translate(input, segment, env) {
+    if (!keyword || input[0] !== keyword) return []
 
-  const number = input.replace(/^[a-zA-Z]+/, '')
-  if (!number) return []
+    const number = input.replace(/^[a-zA-Z]+/, '')
+    if (!number) return []
 
-  return translateNumber(number).map(
-    ([text, comment]) => new Candidate('number', segment.start, segment.end, text, comment),
-  )
+    return translateNumber(number).map(
+      ([text, comment]) => new Candidate('number', segment.start, segment.end, text, comment),
+    )
+  }
 }

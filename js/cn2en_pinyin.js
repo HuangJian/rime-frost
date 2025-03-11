@@ -55,93 +55,99 @@ const pyHintKeys = 'yabcdefghijklmnoprstuvwxz'
 let trie
 
 /**
- * 初始化插件
- * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
- * @description 加载字典数据，优先从二进制文件加载以提高性能，如果二进制文件不存在则从文本文件加载并生成二进制文件
+ * 汉译英过滤器
+ * @implements {Filter}
  */
-export function init(env) {
-  console.log('cn2en_pinyin filter init')
+export class Cn2EnFilter {
+  /**
+   * 初始化插件
+   * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
+   * @description 加载字典数据，优先从二进制文件加载以提高性能，如果二进制文件不存在则从文本文件加载并生成二进制文件
+   */
+  constructor(env) {
+    console.log('cn2en_pinyin filter init')
 
-  // @ts-expect-error
-  trie = env.trie || new Trie()
+    // @ts-expect-error
+    trie = env.trie || new Trie()
 
-  // @ts-expect-error for unit test
-  const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/../js/data/cedict_fixed.u8`
+    // @ts-expect-error for unit test
+    const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/../js/data/cedict_fixed.u8`
 
-  // @ts-expect-error for unit test
-  const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/cedict.bin`
+    // @ts-expect-error for unit test
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/cedict.bin`
 
-  let tick = Date.now()
-  if (env.fileExists(binPath)) {
-    trie.loadBinaryFile(binPath)
-    console.log(`cn2en_pinyin filter: load dict from binary file takes: ${Date.now() - tick}ms`)
-  } else {
-    trie.loadTextFile(txtPath, 119000)
-    console.log(`cn2en_pinyin filter: load dict from text file takes: ${Date.now() - tick}ms`)
+    let tick = Date.now()
+    if (env.fileExists(binPath)) {
+      trie.loadBinaryFile(binPath)
+      console.log(`cn2en_pinyin filter: load dict from binary file takes: ${Date.now() - tick}ms`)
+    } else {
+      trie.loadTextFile(txtPath, 119000)
+      console.log(`cn2en_pinyin filter: load dict from text file takes: ${Date.now() - tick}ms`)
 
-    trie.saveToBinaryFile(binPath)
-    console.log('cn2en_pinyin filter: saved dict to a binary file for future use')
+      trie.saveToBinaryFile(binPath)
+      console.log('cn2en_pinyin filter: saved dict to a binary file for future use')
+    }
   }
-}
 
-/**
- * 插件终止函数
- * @param {Environment} env - 环境对象
- * @description 在输入法退出或重新部署时调用，用于清理资源
- */
-export function finit(env) {
-  console.log('cn2en_pinyin filter finit')
-}
+  /**
+   * 插件终止函数
+   * @param {Environment} env - 环境对象
+   * @description 在输入法退出或重新部署时调用，用于清理资源
+   */
+  finalizer(env) {
+    console.log('cn2en_pinyin filter finit')
+  }
 
-/**
- * 候选项过滤器主函数
- * @param {Array<Candidate>} candidates - 候选项数组
- * @param {Environment} env - 环境对象，包含引擎上下文等信息
- * @returns {Array<Candidate>} 处理后的候选项数组
- * @description 为中文候选项添加拼音注解和英文释义，并处理拼音和英文翻译的快捷选择功能
- */
-export function filter(candidates, env) {
-  const input = env.engine.context.input
-  // Remove everything after a slash (e.g. "zhangk/e" becomes "zhangk")
-  const inputCode = input.replace(/\/.*/, '')
+  /**
+   * 候选项过滤器主函数
+   * @param {Array<Candidate>} candidates - 候选项数组
+   * @param {Environment} env - 环境对象，包含引擎上下文等信息
+   * @returns {Array<Candidate>} 处理后的候选项数组
+   * @description 为中文候选项添加拼音注解和英文释义，并处理拼音和英文翻译的快捷选择功能
+   */
+  filter(candidates, env) {
+    const input = env.engine.context.input
+    const ret = []
+    let sizeInserted = 0
+    candidates.forEach((candidate, idx) => {
+      if (
+        idx >= sizeToLookupEnglish || // 只查找前面 sizeToLookupPinyin 个候选词，避免性能问题
+        candidate.text.length > 10 || // 超过10个字的词不查找
+        !isChineseWord(candidate.text) || // not a Chinese word
+        candidate.comment.includes('〖') || // 已经查过了
+        false
+      ) {
+        ret.push(candidate)
+        return
+      }
 
-  const ret = []
-  let sizeInserted = 0
-  candidates.forEach((candidate, idx) => {
-    if (
-      idx >= sizeToLookupEnglish || // 只查找前面 sizeToLookupPinyin 个候选词，避免性能问题
-      candidate.text.length > 10 || // 超过10个字的词不查找
-      !isChineseWord(candidate.text) || // not a Chinese word
-      candidate.comment.includes('〖') || // 已经查过了
-      false
-    ) {
-      ret.push(candidate)
-      return
-    }
+      const info = trie.find(candidate.text)
+      if (!info) {
+        ret.push(candidate)
+        return
+      }
 
-    const info = trie.find(candidate.text)
-    if (!info) {
-      ret.push(candidate)
-      return
-    }
+      const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
+      sizeInserted += candidatesHavingTheSameText.length - 1
+      ret.push(...candidatesHavingTheSameText)
+    })
 
-    const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
-    sizeInserted += candidatesHavingTheSameText.length - 1
-    ret.push(...candidatesHavingTheSameText)
-  })
+    // Remove everything after a slash (e.g. "zhangk/e" becomes "zhangk")
+    // const inputCode = input.replace(/\/.*/, '')
 
-  // TODO: 启用模糊音后出现很多与全拼输入不匹配的词语，需要排除它们的干扰。
-  // FIXME: 尝试根据拼音的相似度来排序，但是很不稳定，而且对英文及 emoji 等特殊字符的支持不好。暂时不启用。
-  // sortTopNCandidatesByPinyin(ret, sizeToLookupEnglish + sizeInserted, inputCode)
-  // ret.filter((it) => it.weight).forEach((it) => (it.comment = it.comment + '🔨' + it.weight))
+    // TODO: 启用模糊音后出现很多与全拼输入不匹配的词语，需要排除它们的干扰。
+    // FIXME: 尝试根据拼音的相似度来排序，但是很不稳定，而且对英文及 emoji 等特殊字符的支持不好。暂时不启用。
+    // sortTopNCandidatesByPinyin(ret, sizeToLookupEnglish + sizeInserted, inputCode)
+    // ret.filter((it) => it.weight).forEach((it) => (it.comment = it.comment + '🔨' + it.weight))
 
-  hintToPickEnglish(ret, input)
-  tryPrependOrCommitEnglish(ret, input, env.engine)
+    hintToPickEnglish(ret, input)
+    tryPrependOrCommitEnglish(ret, input, env.engine)
 
-  hintToPickPinyin(ret, input)
-  tryPrependOrCommitPinyin(ret, input, env.engine)
+    hintToPickPinyin(ret, input)
+    tryPrependOrCommitPinyin(ret, input, env.engine)
 
-  return ret
+    return ret
+  }
 }
 
 /**

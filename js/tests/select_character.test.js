@@ -1,6 +1,6 @@
 // usage: `./qjs ./select_character.test.js`
 
-import * as select_character from '../select_character.js'
+import { SelectCharProcessor } from '../select_character.js'
 import { KeyRepr } from '../lib/rime.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
@@ -43,23 +43,23 @@ const env = {
 }
 
 // Test 1: Init with valid key configuration
-select_character.init(env)
+const instance = new SelectCharProcessor(env)
 console.log('---------------------------------------')
 
 // Test 2: Process key events for multi-character text
 let keyEvent = { repr: KeyRepr.bracketleft, release: false }
-let result = select_character.process(keyEvent, env)
+let result = instance.process(keyEvent, env)
 assertEquals(result, 'kAccepted', 'First character selection should be accepted')
 
 keyEvent = { repr: KeyRepr.bracketright, release: false }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kAccepted', 'Last character selection should be accepted')
 console.log('---------------------------------------')
 
 // Test 3: Process key events for single character text
 env.engine.context.lastSegment.selectedCandidate.text = '字'
 keyEvent = { repr: KeyRepr.bracketleft, release: false }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kAccepted', 'Single character selection should be accepted')
 console.log('---------------------------------------')
 
@@ -67,7 +67,7 @@ console.log('---------------------------------------')
 env.engine.context.lastSegment.selectedCandidate = null
 env.engine.context.input = 'test'
 keyEvent = { repr: KeyRepr.bracketleft, release: false }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kAccepted', 'Should use input when no candidate available')
 console.log('---------------------------------------')
 
@@ -75,14 +75,14 @@ console.log('---------------------------------------')
 env.engine.context.lastSegment.selectedCandidate = null
 env.engine.context.input = ''
 keyEvent = { repr: KeyRepr.bracketleft, release: false }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kNoop', 'Should noop for empty input')
 console.log('---------------------------------------')
 
 // Test 6: Process key release events
 env.engine.context.lastSegment.selectedCandidate = { text: '测试' }
 keyEvent = { repr: KeyRepr.bracketleft, release: true }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kNoop', 'Should noop for key release events')
 console.log('---------------------------------------')
 
@@ -90,7 +90,7 @@ console.log('---------------------------------------')
 env.engine.context.isComposing = () => false
 env.engine.context.hasMenu = () => false
 keyEvent = { repr: KeyRepr.bracketleft, release: false }
-result = select_character.process(keyEvent, env)
+result = instance.process(keyEvent, env)
 assertEquals(result, 'kNoop', 'Should noop when not composing and no menu')
 console.log('---------------------------------------')
 
@@ -106,7 +106,7 @@ const invalidEnv = {
 }
 
 try {
-  select_character.init(invalidEnv)
+  const otherInstance = new SelectCharProcessor(invalidEnv)
   console.log('Test failed: Should throw error for invalid key configuration')
 } catch (error) {
   assertEquals(error.message, 'select_character.js init: 请配置按键', 'Should throw correct error for invalid keys')
@@ -114,7 +114,7 @@ try {
 console.log('---------------------------------------')
 
 // Test finit function
-select_character.finit(env)
+instance.finalizer(env)
 console.log('---------------------------------------')
 
 // Print test summary

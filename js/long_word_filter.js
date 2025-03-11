@@ -7,7 +7,6 @@
 //  by @[HuangJian](https://github.com/HuangJian)
 
 // 提升 maxPromoteeSize 个词语，插入到第 startingIndex 个位置，默认 2、4。
-
 /** @type {number} Number of candidates to promote */
 let maxPromoteeSize = 2
 
@@ -15,18 +14,74 @@ let maxPromoteeSize = 2
 let startingIndex = 4
 
 /**
- * Initialize the filter with configuration
- * @param {Environment} env - The Rime environment
+ * 长词优先过滤器
+ * @implements {Filter}
  */
-export function init(env) {
-  console.log('long_word_filter.js init')
-  const config = env.engine.schema.config
-  // 不能写成 maxPromoteeSize = config.getInt(namespace + '/count') || 2
-  // 因为 config.getInt() 可能返回 0，从而导致 maxPromoteeSize 被设置为 2。
-  maxPromoteeSize = getConfigIntValueOrDefault(config, env.namespace + '/count', 2)
-  startingIndex = getConfigIntValueOrDefault(config, env.namespace + '/idx', 4)
-}
+export class LongWordFilter {
+  /**
+   * Initialize the filter with configuration
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('long_word_filter.js init')
+    const config = env.engine.schema.config
+    // 不能写成 maxPromoteeSize = config.getInt(namespace + '/count') || 2
+    // 因为 config.getInt() 可能返回 0，从而导致 maxPromoteeSize 被设置为 2。
+    maxPromoteeSize = getConfigIntValueOrDefault(config, env.namespace + '/count', 2)
+    startingIndex = getConfigIntValueOrDefault(config, env.namespace + '/idx', 4)
+  }
 
+  /**
+   * Clean up when the filter is unloaded
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('long_word_filter.js finit')
+  }
+
+  /**
+   * Filter and reorder candidates to prioritize longer words
+   * @param {Array<Candidate>} candidates - Array of candidates to filter
+   * @returns {Array<Candidate>} Reordered candidates with longer words promoted
+   */
+  filter(candidates) {
+    let firstWordLength = 0 // 记录第一个候选词的长度，提前的候选词至少要比第一个候选词长
+
+    const ret = []
+    const shortWords = []
+    const others = []
+    let founds = 0
+    candidates.forEach((candidate, idx) => {
+      // 找齐了或者 shortWords 太大了，就不找了，一般前 50 个就够了
+      if (founds >= maxPromoteeSize || shortWords.length > 50) {
+        others.push(candidate)
+        return
+      }
+
+      const textLength = candidate.text.length
+      if (firstWordLength < 1) {
+        // 只以第一个候选项的长度作为参考
+        firstWordLength = textLength
+      }
+
+      if (idx < startingIndex) {
+        // 不处理 startingIndex 之前的候选项
+        ret.push(candidate)
+      } else if (textLength <= firstWordLength || /[a-zA-Z0-9]+/.test(candidate.text)) {
+        // 收录短词
+        shortWords.push(candidate)
+      } else {
+        // 长词直接 yield
+        ret.push(candidate)
+        founds++
+      }
+    })
+    ret.push(...shortWords)
+    ret.push(...others)
+
+    return ret
+  }
+}
 
 /**
  * Get integer value from config with fallback
@@ -41,47 +96,4 @@ function getConfigIntValueOrDefault(config, key, defaultValue) {
     return defaultValue
   }
   return value
-}
-
-/**
- * Filter and reorder candidates to prioritize longer words
- * @param {Array<Candidate>} candidates - Array of candidates to filter
- * @returns {Array<Candidate>} Reordered candidates with longer words promoted
- */
-export function filter(candidates) {
-  let firstWordLength = 0 // 记录第一个候选词的长度，提前的候选词至少要比第一个候选词长
-
-  const ret = []
-  const shortWords = []
-  const others = []
-  let founds = 0
-  candidates.forEach((candidate, idx) => {
-    // 找齐了或者 shortWords 太大了，就不找了，一般前 50 个就够了
-    if (founds >= maxPromoteeSize || shortWords.length > 50) {
-      others.push(candidate)
-      return
-    }
-
-    const textLength = candidate.text.length
-    if (firstWordLength < 1) {
-      // 只以第一个候选项的长度作为参考
-      firstWordLength = textLength
-    }
-
-    if (idx < startingIndex) {
-      // 不处理 startingIndex 之前的候选项
-      ret.push(candidate)
-    } else if (textLength <= firstWordLength || /[a-zA-Z0-9]+/.test(candidate.text)) {
-      // 收录短词
-      shortWords.push(candidate)
-    } else {
-      // 长词直接 yield
-      ret.push(candidate)
-      founds++
-    }
-  })
-  ret.push(...shortWords)
-  ret.push(...others)
-
-  return ret
 }

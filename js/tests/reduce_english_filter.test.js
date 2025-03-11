@@ -1,6 +1,6 @@
 // usage: `./qjs ./reduce_english_filter.test.js`
 
-import * as reducer from '../reduce_english_filter.js'
+import { ReduceEnglishFilter } from '../reduce_english_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -42,7 +42,7 @@ const env = {
 }
 
 // Test 1: Test initialization with custom mode
-reducer.init(env)
+const instance = new ReduceEnglishFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: Test filtering with non-matching input
@@ -51,7 +51,7 @@ let candidates = [
   new Candidate('abc', 0, 5, 'hello', ''),
   new Candidate('abc', 0, 5, 'world', ''),
 ]
-let filtered = reducer.filter(candidates, env)
+let filtered = instance.filter(candidates, env)
 assertEquals(filtered[0].text, 'hello', 'filter: non-matching input should not change candidates')
 assertEquals(filtered[1].text, 'world', 'filter: non-matching input should not change candidates')
 console.log('---------------------------------------')
@@ -63,7 +63,7 @@ candidates = [
   new Candidate('abc', 0, 4, '测试', ''),
   new Candidate('abc', 0, 4, 'best', ''),
 ]
-filtered = reducer.filter(candidates, env)
+filtered = instance.filter(candidates, env)
 assertEquals(filtered[0].text, '测试', 'filter: matching input should lower English words position')
 assertEquals(filtered[1].text, 'test', 'filter: matching input should lower English words position')
 assertEquals(filtered[2].text, 'best', 'filter: matching input should lower English words position')
@@ -73,14 +73,14 @@ console.log('---------------------------------------')
 env.engine.context.input = 'test'
 candidates = [new Candidate('abc', 0, 4, 'test case', '')]
 candidates[0].preedit = 'test case'
-filtered = reducer.filter(candidates, env)
+filtered = instance.filter(candidates, env)
 assertEquals(filtered[0].text, 'test case', 'filter: words with space should not be lowered')
 console.log('---------------------------------------')
 
 // Test 5: Test filtering with non-English text
 env.engine.context.input = 'test'
 candidates = [new Candidate('abc', 0, 4, '测试', '')]
-filtered = reducer.filter(candidates, env)
+filtered = instance.filter(candidates, env)
 assertEquals(filtered[0].text, '测试', 'filter: non-English text should not be lowered')
 console.log('---------------------------------------')
 
@@ -89,13 +89,13 @@ env.engine.schema.config.getString = (key) => {
   if (key === 'test/mode') return 'all'
   return null
 }
-reducer.init(env)
+const instanceAllMode = new ReduceEnglishFilter(env)
 env.engine.context.input = 'aid'
 candidates = [
   new Candidate('abc', 0, 3, 'aid', ''),
   new Candidate('abc', 0, 3, '帮助', ''),
 ]
-filtered = reducer.filter(candidates, env)
+filtered = instanceAllMode.filter(candidates, env)
 assertEquals(filtered[0].text, '帮助', 'filter: all mode should include predefined words')
 assertEquals(filtered[1].text, 'aid', 'filter: all mode should include predefined words')
 console.log('---------------------------------------')

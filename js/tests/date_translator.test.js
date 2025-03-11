@@ -1,6 +1,8 @@
 // usage: `./qjs ./date_translator.test.js`
 
-import * as dateTranslator from '../date_translator.js'
+// @ts-nocheck
+
+import { DateTranslator } from '../date_translator.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -37,13 +39,13 @@ const env = {
 const seg = { start: 0, end: 0 }
 
 // Test 1: Initialization
-dateTranslator.init(env)
+const instance = new DateTranslator(env)
 console.log('Test 1: Initialization - Passed')
 console.log('---------------------------------------')
 
 // Test 2: Date formatting
 let input = 'custom_rq'
-let result = dateTranslator.translate(input, seg, env)
+let result = instance.translate(input, seg, env)
 const dateRegex = /^\d{4}[-\/.]\d{2}[-\/.]\d{2}$/
 const chineseDateRegex = /^\d{4}年\d{1,2}月\d{1,2}日$/
 
@@ -58,7 +60,7 @@ console.log('---------------------------------------')
 
 // Test 3: Time formatting
 input = 'custom_sj'
-result = dateTranslator.translate(input, seg, env)
+result = instance.translate(input, seg, env)
 const timeRegex = /^\d{2}:\d{2}(:\d{2})?$/
 
 assertEquals(result.length, 3, 'Should return 3 time format variations')
@@ -70,7 +72,7 @@ console.log('---------------------------------------')
 
 // Test 4: Week formatting
 input = 'custom_xq'
-result = dateTranslator.translate(input, seg, env)
+result = instance.translate(input, seg, env)
 const weekday = ['日', '一', '二', '三', '四', '五', '六'][new Date().getDay()]
 
 assertEquals(result.length, 3, 'Should return 3 week format variations')
@@ -82,7 +84,7 @@ console.log('---------------------------------------')
 
 // Test 5: DateTime ISO format
 input = 'custom_dt'
-result = dateTranslator.translate(input, seg, env)
+result = instance.translate(input, seg, env)
 const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/
 const standardDateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 
@@ -95,7 +97,7 @@ console.log('---------------------------------------')
 
 // Test 6: Timestamp
 input = 'custom_ts'
-result = dateTranslator.translate(input, seg, env)
+result = instance.translate(input, seg, env)
 
 assertEquals(result.length, 1, 'Should return 1 timestamp format')
 assertEquals(/^\d{10}$/.test(result[0].text), true, 'Should be a 10-digit timestamp')
@@ -107,7 +109,7 @@ console.log('---------------------------------------')
 
 // Test 7: Invalid input
 input = 'invalid_key'
-result = dateTranslator.translate(input, seg, env)
+result = instance.translate(input, seg, env)
 assertEquals(result.length, 0, 'Should return empty array for invalid input')
 console.log('Test 7: Invalid input - Passed')
 console.log('---------------------------------------')

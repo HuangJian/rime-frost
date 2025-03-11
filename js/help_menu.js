@@ -21,34 +21,42 @@ const menus = [
 ]
 
 /**
- * Initialize the help menu translator
- * @param {Environment} env - The Rime environment
+ * 帮助菜单翻译器
+ * @implements {Translator}
  */
-export function init(env) {
-  console.log('help_menu.js init')
-}
+export class HelpMenuTranslator {
+  /**
+   * Initialize the help menu translator
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('help_menu.js init')
+  }
 
-/**
- * Clean up the help menu translator
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('help_menu.js finit')
-}
+  /**
+   * Clean up the help menu translator
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('help_menu.js finit')
+  }
 
-/**
- * Translate help menu related input
- * @param {string} input - The input string to translate
- * @param {Segment} segment - The input segment
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Array of translation candidates
- */
-export function translate(input, segment, env) {
-  if (input.length < 3 || !'/help'.startsWith(input)) return []
+  /**
+   * Translate help menu related input
+   * @param {string} input - The input string to translate
+   * @param {Segment} segment - The input segment
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Array of translation candidates
+   */
+  translate(input, segment, env) {
+    if (input.length < 3 || !'/help'.startsWith(input)) return []
 
-  segment.prompt = '〔帮助菜单〕'
+    segment.prompt = '〔帮助菜单〕'
 
-  const ret = menus.map(([text, comment]) => new Candidate('help', segment.start, segment.end, text, comment))
-  ret.unshift(new Candidate('help', segment.start, segment.end, '版本状态', env.getRimeInfo()))
-  return ret
+    const ret = menus.map(
+      ([text, comment]) => new Candidate('help', segment.start, segment.end, text, comment),
+    )
+    ret.unshift(new Candidate('help', segment.start, segment.end, '版本状态', env.getRimeInfo()))
+    return ret
+  }
 }

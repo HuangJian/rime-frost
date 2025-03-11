@@ -26,7 +26,7 @@ const pairTable = {
   '`': '`',
   '"': '"',
   '“': '”',
-  '\'': '\'',
+  "'": "'",
   '‘': '’',
   '(': ')',
   '（': '）',
@@ -43,46 +43,51 @@ const pairTable = {
   '｛': '｝',
   '《': '》',
 }
-
 /**
- * Initialize the processor
- * @param {Environment} env - The Rime environment
+ * 配对符号自动补全
+ * @implements {Processor}
  */
-export function init(env) {
-  console.log('pairs.js init')
-}
-
-/**
- * Clean up when processor is unloaded
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('pairs.js finit')
-}
-
-/**
- * Process key events to handle paired symbol completion
- * @param {KeyEvent} keyEvent - The key event to process
- * @param {Environment} env - The Rime environment
- * @returns {ProcessResult} Result indicating if key was handled
- */
-export function process(keyEvent, env) {
-  const context = env.engine.context
-  if (context.hasMenu() || context.isComposing()) {
-    const pickingCandidate = getPickingCandidate(keyEvent, context.lastSegment)
-    if (!pickingCandidate) return 'kNoop'
-
-    const symbol = pickingCandidate.text
-    const pairedText = pairTable[symbol]
-    if (pairedText) {
-      env.engine.commitText(symbol + pairedText)
-      context.clear()
-
-      moveCursorToLeftForMacOS(env)
-
-      return 'kAccepted'
-    }
+export class PairsProcessor {
+  /**
+   * Initialize the processor
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('pairs.js init')
   }
 
-  return 'kNoop'
+  /**
+   * Clean up when processor is unloaded
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('pairs.js finit')
+  }
+
+  /**
+   * Process key events to handle paired symbol completion
+   * @param {KeyEvent} keyEvent - The key event to process
+   * @param {Environment} env - The Rime environment
+   * @returns {ProcessResult} Result indicating if key was handled
+   */
+  process(keyEvent, env) {
+    const context = env.engine.context
+    if (context.hasMenu() || context.isComposing()) {
+      const pickingCandidate = getPickingCandidate(keyEvent, context.lastSegment)
+      if (!pickingCandidate) return 'kNoop'
+
+      const symbol = pickingCandidate.text
+      const pairedText = pairTable[symbol]
+      if (pairedText) {
+        env.engine.commitText(symbol + pairedText)
+        context.clear()
+
+        moveCursorToLeftForMacOS(env)
+
+        return 'kAccepted'
+      }
+    }
+
+    return 'kNoop'
+  }
 }

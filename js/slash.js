@@ -10,43 +10,48 @@
 import { KeyRepr } from './lib/rime.js'
 
 /**
- * Initialize the processor
- * @param {Environment} env - The Rime environment
+ * 配对符号自动补全
+ * @implements {Processor}
  */
-export function init(env) {
-  console.log('slash.js init')
-}
-
-/**
- * Clean up when processor is unloaded
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('slash.js finit')
-}
-
-let direction = KeyRepr.Down
-
-/**
- * Process key events to switch between candidates
- * @param {KeyEvent} keyEvent - The key event to process
- * @param {Environment} env - The Rime environment
- * @returns {ProcessResult} Result indicating if key was handled
- */
-export function process(keyEvent, env) {
-  const context = env.engine.context
-  if (context.hasMenu() || context.isComposing()) {
-    const segment = context.lastSegment
-    if (keyEvent.repr === KeyRepr.slash && segment.getCandidateAt(0).text === '/') {
-      if (segment.selectedIndex >= segment.candidateSize - 1) {
-        direction = KeyRepr.Up
-      } else if (segment.selectedIndex === 0) {
-        direction = KeyRepr.Down
-      }
-      env.engine.processKey(direction)
-      return 'kAccepted'
-    }
+export class SlashProcessor {
+  direction = KeyRepr.Down
+  /**
+   * Initialize the processor
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('slash.js init')
   }
 
-  return 'kNoop'
+  /**
+   * Clean up when processor is unloaded
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('slash.js finit')
+  }
+
+  /**
+   * Process key events to switch between candidates
+   * @param {KeyEvent} keyEvent - The key event to process
+   * @param {Environment} env - The Rime environment
+   * @returns {ProcessResult} Result indicating if key was handled
+   */
+  process(keyEvent, env) {
+    const context = env.engine.context
+    if (context.hasMenu() || context.isComposing()) {
+      const segment = context.lastSegment
+      if (keyEvent.repr === KeyRepr.slash && segment.getCandidateAt(0).text === '/') {
+        if (segment.selectedIndex >= segment.candidateSize - 1) {
+          this.direction = KeyRepr.Up
+        } else if (segment.selectedIndex === 0) {
+          this.direction = KeyRepr.Down
+        }
+        env.engine.processKey(this.direction)
+        return 'kAccepted'
+      }
+    }
+
+    return 'kNoop'
+  }
 }

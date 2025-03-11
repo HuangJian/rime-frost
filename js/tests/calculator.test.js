@@ -1,6 +1,8 @@
 // usage: `./qjs ./calculator.test.js`
 
-import * as calculator from '../calculator.js'
+// @ts-nocheck
+
+import { Calculator } from '../calculator.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -18,8 +20,8 @@ const env = {}
 const seg = { start: 0, end: 0 }
 
 // Test 1: Init and finit functions
-calculator.init(env)
-calculator.finit(env)
+const calculator = new Calculator(env)
+calculator.finalizer(env)
 console.log('---------------------------------------')
 
 // Test 2: Basic calculations

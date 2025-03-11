@@ -1,6 +1,6 @@
 // usage: `./qjs ./is_in_user_dict.test.js`
 
-import * as marker from '../is_in_user_dict.js'
+import { IsInUserDictFilter } from '../is_in_user_dict.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -23,7 +23,7 @@ const env = {
 }
 
 // Test 1: Init function logs correctly
-marker.init()
+const marker = new IsInUserDictFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: User phrase should be marked with *

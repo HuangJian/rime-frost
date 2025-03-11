@@ -1,6 +1,6 @@
 // usage: `./qjs ./long_word_filter.test.js`
 
-import * as longWord from '../long_word_filter.js'
+import { LongWordFilter } from '../long_word_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -31,7 +31,7 @@ const env = {
 }
 
 // Test 1: Init function sets configuration values correctly
-longWord.init(env)
+const instance = new LongWordFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: Basic filtering with default settings
@@ -42,7 +42,7 @@ let candidates = [
   new Candidate('abc', 0, 4, '你好世界', ''),   // length 4
   new Candidate('abc', 0, 5, '你好啊世界', ''),  // length 5
 ]
-let filtered = longWord.filter(candidates)
+let filtered = instance.filter(candidates)
 assertEquals(filtered[0].text, '你', 'filter: first candidate should remain unchanged')
 assertEquals(filtered[4].text, '你好啊世界', 'filter: longer words should be promoted')
 console.log('---------------------------------------')
@@ -54,7 +54,7 @@ candidates = [
   new Candidate('abc', 0, 3, '你好啊', ''),
   new Candidate('abc', 0, 4, '123456', '')
 ]
-filtered = longWord.filter(candidates)
+filtered = instance.filter(candidates)
 assertEquals(filtered[0].text, '你', 'filter: first candidate should remain unchanged')
 assertEquals(filtered[1].text, '你好啊', 'filter: long Chinese words should be promoted')
 assertEquals(filtered[2].text, 'hello', 'filter: English words should not be promoted')
@@ -70,7 +70,7 @@ candidates = [
   new Candidate('abc', 0, 5, '一二三四五', ''),
   new Candidate('abc', 0, 6, '一二三四五六', '')
 ]
-filtered = longWord.filter(candidates)
+filtered = instance.filter(candidates)
 assertEquals(filtered[4].text, '一二三四五', 'filter: should respect startingIndex for promotion')
 console.log('---------------------------------------')
 
@@ -83,7 +83,7 @@ candidates = [
   new Candidate('abc', 0, 5, '甲乙丙丁戊', ''),
   new Candidate('abc', 0, 6, '甲乙丙丁戊己', '')
 ]
-filtered = longWord.filter(candidates)
+filtered = instance.filter(candidates)
 assertEquals(filtered.length, candidates.length, 'filter: should maintain total number of candidates')
 console.log('---------------------------------------')
 

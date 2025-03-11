@@ -1,6 +1,6 @@
 // usage: `./qjs ./shortcut.test.js`
 
-import * as shortcut from '../shortcut.js'
+import { Shortcut } from '../shortcut.js'
 import { KeyRepr } from '../lib/rime.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
@@ -41,8 +41,8 @@ const seg = {
 }
 
 // Test 1: Init and finit functions
-shortcut.init(env)
-shortcut.finit(env)
+const shortcut = new Shortcut(env)
+shortcut.finalizer(env)
 console.log('---------------------------------------')
 
 // Test 2: Basic shortcut translation

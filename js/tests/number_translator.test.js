@@ -1,6 +1,6 @@
 // usage: `./qjs ./number_translator.test.js`
 
-import * as numberTranslator from '../number_translator.js'
+import { NumberTranslator } from '../number_translator.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -27,8 +27,8 @@ const seg = { start: 0, end: 0 }
 
 // Test 1: Init and finit functions
 console.log('Test: Init and finit functions')
-numberTranslator.init(env)
-numberTranslator.finit(env)
+const numberTranslator = new NumberTranslator(env)
+numberTranslator.finalizer(env)
 console.log('---------------------------------------')
 
 // Test 3: Basic number translations

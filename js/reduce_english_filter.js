@@ -63,51 +63,57 @@ function loadCustomWordsIntoSet(config, key) {
 }
 
 /**
- * Initialize the filter with configuration
- * @param {Environment} env - The Rime environment
+ * 降低部分英语单词在候选项的位置
+ * @implements {Filter}
  */
-export function init(env) {
-  const config = env.engine.schema.config
-  const namespace = env.namespace.replace(/^\*/, '')
+export class ReduceEnglishFilter {
+  /**
+   * Initialize the filter with configuration
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    const config = env.engine.schema.config
+    const namespace = env.namespace.replace(/^\*/, '')
 
-  indexToInsertPostponees = config.getInt(namespace + '/idx') || 2
+    indexToInsertPostponees = config.getInt(namespace + '/idx') || 2
 
-  // 模式
-  const mode = config.getString(namespace + '/mode') || 'all' // 默认 mode 为 all
-  const listKey = namespace + '/words'
-  if (mode === 'custom') {
-    // 只启用「用户自定义词」
-    loadCustomWordsIntoSet(config, listKey)
-  } else if (mode === 'all') {
-    // 合并「脚本预置词」和「用户自定义词」
-    words = new Set(all)
-    loadCustomWordsIntoSet(config, listKey)
-  }
-}
-
-/**
- * Filter candidates to postpond some short English words
- * @param {Array<Candidate>} candidates - The candidates to re-order
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Re-ordered candidates
- */
-export function filter(candidates, env) {
-  const code = env.engine.context.input
-  if (!words.has(code)) return candidates
-
-  const ret = []
-  const candidatesToPostpond = [] // 要降低的候选词
-  candidates.forEach((candidate, idx) => {
-    if (idx >= indexToInsertPostponees + candidatesToPostpond.length - 1) {
-      // 插入位置之后的候选词，不需要处理，直接加入 candidatesToPostpond
-      candidatesToPostpond.push(candidate)
-    } else if (candidate.preedit?.includes(' ') || !/^[a-zA-Z]+$/.test(candidate.text)) {
-      // 包含空格或者不是纯英文词，保持原位置
-      ret.push(candidate)
-    } else {
-      // 找到要降低的英文词，加入 candidatesToPostpond 以降低位置
-      candidatesToPostpond.push(candidate)
+    // 模式
+    const mode = config.getString(namespace + '/mode') || 'all' // 默认 mode 为 all
+    const listKey = namespace + '/words'
+    if (mode === 'custom') {
+      // 只启用「用户自定义词」
+      loadCustomWordsIntoSet(config, listKey)
+    } else if (mode === 'all') {
+      // 合并「脚本预置词」和「用户自定义词」
+      words = new Set(all)
+      loadCustomWordsIntoSet(config, listKey)
     }
-  })
-  return [...ret, ...candidatesToPostpond]
+  }
+
+  /**
+   * Filter candidates to postpond some short English words
+   * @param {Array<Candidate>} candidates - The candidates to re-order
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Re-ordered candidates
+   */
+  filter(candidates, env) {
+    const code = env.engine.context.input
+    if (!words.has(code)) return candidates
+
+    const ret = []
+    const candidatesToPostpond = [] // 要降低的候选词
+    candidates.forEach((candidate, idx) => {
+      if (idx >= indexToInsertPostponees + candidatesToPostpond.length - 1) {
+        // 插入位置之后的候选词，不需要处理，直接加入 candidatesToPostpond
+        candidatesToPostpond.push(candidate)
+      } else if (candidate.preedit?.includes(' ') || !/^[a-zA-Z]+$/.test(candidate.text)) {
+        // 包含空格或者不是纯英文词，保持原位置
+        ret.push(candidate)
+      } else {
+        // 找到要降低的英文词，加入 candidatesToPostpond 以降低位置
+        candidatesToPostpond.push(candidate)
+      }
+    })
+    return [...ret, ...candidatesToPostpond]
+  }
 }

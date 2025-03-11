@@ -11,67 +11,72 @@
 import { KeyRepr } from './lib/rime.js'
 
 const keys = {}
-
 /**
- * Initialize the processor
- * @param {Environment} env - The Rime environment
+ * 以词定字
+ * @implements {Processor}
  */
-export function init(env) {
-  console.log('select_character.js init')
+export class SelectCharProcessor {
+  /**
+   * Initialize the processor
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('select_character.js init')
 
-  const config = env.engine.schema.config
-  keys.firstKey = config.getString('key_binder/select_first_character')
-  keys.lastKey = config.getString('key_binder/select_last_character')
+    const config = env.engine.schema.config
+    keys.firstKey = config.getString('key_binder/select_first_character')
+    keys.lastKey = config.getString('key_binder/select_last_character')
 
-  const isInvalid = (key) => !key || !KeyRepr[key]
-  if (isInvalid(keys.firstKey) || isInvalid(keys.lastKey)) {
-    // 在 init 方法中抛出错误，librime-qjs 插件引擎将认为脚本加载失败，后继不会调用 process 方法
-    throw new Error('select_character.js init: 请配置按键')
+    const isInvalid = (key) => !key || !KeyRepr[key]
+    if (isInvalid(keys.firstKey) || isInvalid(keys.lastKey)) {
+      // 在 init 方法中抛出错误，librime-qjs 插件引擎将认为脚本加载失败，后继不会调用 process 方法
+      throw new Error('select_character.js init: 请配置按键')
+    }
   }
-}
-
-/**
- * Clean up when processor is unloaded
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('select_character.js finit')
-}
-
-/**
- * Process key events to handle paired symbol completion
- * @param {KeyEvent} keyEvent - The key event to process
- * @param {Environment} env - The Rime environment
- * @returns {ProcessResult} Result indicating if key was handled
- */
-export function process(keyEvent, env) {
-  if (keyEvent.release || !keys.firstKey || !keys.lastKey) return 'kNoop'
-
-  const context = env.engine.context
-  if (!context.isComposing() && !context.hasMenu()) return 'kNoop'
 
   /**
-   * Commit text to the input context
-   * @param {string} text - The text to commit
+   * Clean up when processor is unloaded
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('select_character.js finit')
+  }
+
+  /**
+   * Process key events to handle paired symbol completion
+   * @param {KeyEvent} keyEvent - The key event to process
+   * @param {Environment} env - The Rime environment
    * @returns {ProcessResult} Result indicating if key was handled
    */
-  const commitText = (text) => {
-    env.engine.commitText(text)
-    context.clear()
-    return 'kAccepted'
-  }
+  process(keyEvent, env) {
+    if (keyEvent.release || !keys.firstKey || !keys.lastKey) return 'kNoop'
 
-  const text = context.lastSegment?.selectedCandidate?.text || context.input || ''
-  const keyRepr = keyEvent.repr
-  if (text.length > 1) {
-    if (keyRepr === keys.firstKey) {
-      return commitText(text[0])
-    } else if (keyRepr === keys.lastKey) {
-      return commitText(text[text.length - 1])
+    const context = env.engine.context
+    if (!context.isComposing() && !context.hasMenu()) return 'kNoop'
+
+    /**
+     * Commit text to the input context
+     * @param {string} text - The text to commit
+     * @returns {ProcessResult} Result indicating if key was handled
+     */
+    const commitText = (text) => {
+      env.engine.commitText(text)
+      context.clear()
+      return 'kAccepted'
     }
-  } else if (text.length === 1 && (keyRepr === keys.firstKey || keyRepr === keys.lastKey)) {
-    return commitText(text)
-  }
 
-  return 'kNoop'
+    const text = context.lastSegment?.selectedCandidate?.text || context.input || ''
+    const keyRepr = keyEvent.repr
+    if (text.length > 1) {
+      if (keyRepr === keys.firstKey) {
+        return commitText(text[0])
+      } else if (keyRepr === keys.lastKey) {
+        return commitText(text[text.length - 1])
+      }
+    } else if (text.length === 1 && (keyRepr === keys.firstKey || keyRepr === keys.lastKey)) {
+      return commitText(text)
+    }
+
+    return 'kNoop'
+  }
 }

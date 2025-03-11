@@ -1,6 +1,6 @@
 // usage: `./qjs ./lunar_translator.test.js`
 
-import * as lunar from '../lunar_translator.js'
+import { LunarTranslator } from '../lunar_translator.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -30,8 +30,8 @@ const seg = { start: 0, end: 0 }
 
 // Test 1: Init and finit functions
 console.log('Test 1: Testing init and finit functions')
-lunar.init(env)
-lunar.finit(env)
+const lunar = new LunarTranslator(env)
+lunar.finalizer(env)
 console.log('---------------------------------------')
 
 // Test 2: Current date conversion

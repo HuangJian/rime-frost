@@ -1,10 +1,7 @@
-/**
- * charset_filter: 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
- *
- * -------------------------------------------------------
- * 使用 JavaScript 实现，适配 librime-qjs 插件系统。
- * by @[HuangJian](https://github.com/HuangJian)
- */
+// charset_filter: 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
+// -------------------------------------------------------
+// 使用 JavaScript 实现，适配 librime-qjs 插件系统。
+// by @[HuangJian](https://github.com/HuangJian)
 
 // Charset definitions for CJK characters
 const charsets = {
@@ -25,41 +22,41 @@ const charsets = {
  */
 function isCjkExt(char) {
   const charPoint = char.codePointAt(0)
-  return [
-    charsets.ExtB,
-    charsets.ExtC,
-    charsets.ExtD,
-    charsets.ExtE,
-    charsets.ExtF
-  ].some((charset) =>
-    charPoint >= charset.first && charPoint <= charset.last
+  return [charsets.ExtB, charsets.ExtC, charsets.ExtD, charsets.ExtE, charsets.ExtF].some(
+    (charset) => charPoint >= charset.first && charPoint <= charset.last,
   )
 }
 
 /**
- * Initialize the filter
- * @param {Environment} env - The Rime environment
+ * 不可见字符集过滤器
+ * @implements {Filter}
  */
-export function init(env) {
-  console.log('charset_filter init')
-}
+export class CharsetFilter {
+  /**
+   * Initialize the filter
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('charset_filter init')
+  }
 
-/**
- * Clean up the filter
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('charset_filter finit')
-}
+  /**
+   * Clean up the filter
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('charset_filter finit')
+  }
 
-/**
- * Filter out candidates containing CJK extension characters
- * @param {Array<Candidate>} candidates - The candidates to filter
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Filtered candidates
- */
-export function filter(candidates, env) {
-  return candidates.filter((item) => {
-    return !Array.from(item.text).some(isCjkExt)
-  })
+  /**
+   * Filter out candidates containing CJK extension characters
+   * @param {Array<Candidate>} candidates - The candidates to filter
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Filtered candidates
+   */
+  filter(candidates, env) {
+    return candidates.filter((item) => {
+      return !Array.from(item.text).some(isCjkExt)
+    })
+  }
 }

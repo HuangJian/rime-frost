@@ -30,72 +30,78 @@ const regHasNonAlphanumericPuncuationSpace = /[^\w\p{P}\s]/u
 const reghasSpace = /\s/
 
 /**
- * Filter candidates to apply automatic capitalization rules
- * @param {Array<Candidate>} candidates - The candidates to process
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Processed candidates with appropriate capitalization
+ * 自动大写英文词汇过滤器
+ * @implements {Filter}
  */
-export function filter(candidates, env) {
-  const code = env.engine.context.input // 输入码
-  const codeLen = code.length
-  let codeAllUCase = false
-  let codeUCase = false
-
-  // 码长为 1 或 输入码首位为小写字母或标点，不转换：
-  if (codeLen === 1 || regPunctuationOrLowerAlphabetLeading.test(code)) {
-    return candidates
+export class AutoCapFilter {
+  /**
+   * Initialize the filter
+   * @param {Environment} env - The Rime environment
+   */
+  constructor(env) {
+    console.log('autocap_filter.js init')
   }
 
-  if (reg2plusUpperAlphabetsLeading.test(code)) {
-    // 输入码前 2 - n 位大写
-    codeAllUCase = true
-  } else if (regSingleUpperAlphabetLeading.test(code)) {
-    // 输入码首位大写
-    codeUCase = true
-  } else {
-    return candidates
+  /**
+   * Clean up the filter
+   * @param {Environment} env - The Rime environment
+   */
+  finalizer(env) {
+    console.log('autocap_filter.js finit')
   }
 
-  const pureCode = code.replace(regPunctuationsAndSpaces, '').toLowerCase() // 删除标点和空格的输入码
+  /**
+   * Filter candidates to apply automatic capitalization rules
+   * @param {Array<Candidate>} candidates - The candidates to process
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Processed candidates with appropriate capitalization
+   */
+  filter(candidates, env) {
+    const code = env.engine.context.input // 输入码
+    const codeLen = code.length
+    let codeAllUCase = false
+    let codeUCase = false
 
-  return candidates.map((candidate) => {
-    let text = candidate.text // 候选词
-    const pureText = text.replace(regPunctuationsAndSpaces, '') // 删除标点和空格的候选词
-
-    if (
-      regHasNonAlphanumericPuncuationSpace.test(text) || // 候选词包含非字母和数字、非标点符号、非空格的字符
-      reghasSpace.test(text) || // 候选词中包含空格
-      pureText.startsWith(code) || // 输入码完全匹配候选词
-      (candidate.type !== 'completion' && // 单词与其对应的编码不一致
-        !pureText.toLowerCase().startsWith(pureCode)) // 例如 PS - Photoshop
-    ) {
-      return candidate // 不做转换
+    // 码长为 1 或 输入码首位为小写字母或标点，不转换：
+    if (codeLen === 1 || regPunctuationOrLowerAlphabetLeading.test(code)) {
+      return candidates
     }
 
-    const newText = codeAllUCase ? text.toUpperCase() : text[0].toUpperCase() + text.slice(1)
-    return new Candidate(
-      candidate.type,
-      candidate.start,
-      candidate.end,
-      newText,
-      candidate.comment || '',
-      candidate.quality,
-    )
-  })
-}
+    if (reg2plusUpperAlphabetsLeading.test(code)) {
+      // 输入码前 2 - n 位大写
+      codeAllUCase = true
+    } else if (regSingleUpperAlphabetLeading.test(code)) {
+      // 输入码首位大写
+      codeUCase = true
+    } else {
+      return candidates
+    }
 
-/**
- * Initialize the filter
- * @param {Environment} env - The Rime environment
- */
-export function init(env) {
-  console.log('autocap_filter.js init')
-}
+    const pureCode = code.replace(regPunctuationsAndSpaces, '').toLowerCase() // 删除标点和空格的输入码
 
-/**
- * Clean up the filter
- * @param {Environment} env - The Rime environment
- */
-export function finit(env) {
-  console.log('autocap_filter.js finit')
+    return candidates.map((candidate) => {
+      let text = candidate.text // 候选词
+      const pureText = text.replace(regPunctuationsAndSpaces, '') // 删除标点和空格的候选词
+
+      if (
+        regHasNonAlphanumericPuncuationSpace.test(text) || // 候选词包含非字母和数字、非标点符号、非空格的字符
+        reghasSpace.test(text) || // 候选词中包含空格
+        pureText.startsWith(code) || // 输入码完全匹配候选词
+        (candidate.type !== 'completion' && // 单词与其对应的编码不一致
+          !pureText.toLowerCase().startsWith(pureCode)) // 例如 PS - Photoshop
+      ) {
+        return candidate // 不做转换
+      }
+
+      const newText = codeAllUCase ? text.toUpperCase() : text[0].toUpperCase() + text.slice(1)
+      return new Candidate(
+        candidate.type,
+        candidate.start,
+        candidate.end,
+        newText,
+        candidate.comment || '',
+        candidate.quality,
+      )
+    })
+  }
 }

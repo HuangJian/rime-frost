@@ -255,50 +255,56 @@ function stringToDate(str) {
 }
 
 /**
- * 初始化农历转换器
- * @param {Environment} env - 输入法引擎环境对象
+ * 农历转换器
+ * @implements {Translator}
  */
-export function init(env) {
-  console.log('lunar translator init')
-  const config = env.engine.schema.config
-  keys.lunar = config.getString(env.namespace + '/lunar') || 'nl'
-}
-
-/**
- * 清理农历转换器资源
- * @param {Environment} env - 输入法引擎环境对象
- */
-export function finit(env) {
-  console.log('lunar translator finit')
-}
-
-/**
- * 将输入转换为农历日期
- * @param {string} input - The input string to translate
- * @param {Segment} segment - The input segment
- * @param {Environment} env - The Rime environment
- * @returns {Array<Candidate>} Array of translation candidates
- */
-export function translate(input, segment, env) {
-  const candidates = []
-
-  const yieldCandidate = (text, comment) =>
-    candidates.push(new Candidate('date', segment.start, segment.end, text, comment || '', 999))
-
-  let date =
-    input === keys.lunar
-      ? new Date() // 今天
-      : input.startsWith(keys.lunar) && /^\d{8}$/.test(input.substring(keys.lunar.length))
-      ? stringToDate(input.substring(keys.lunar.length)) // 格式为 nl20250204 的日期
-      : null // 不处理
-
-  if (date) {
-    yieldCandidate(getSimpleLunarDate(date)) // 二〇二五年二月初四
-    yieldCandidate(getTraditionalLunarDate(date)) // 乙巳年二月初四
-    yieldCandidate(getTraditionalLunarDateWithZodiac(date)) // 乙巳年（蛇）二月初四
-  } else if (input.startsWith(keys.lunar) && /^\d+$/.test(input.substring(keys.lunar.length))) {
-    yieldCandidate('〔农历日期转换〕', '请输入指定日期的八位数字，如：20250303')
+export class LunarTranslator {
+  /**
+   * 初始化农历转换器
+   * @param {Environment} env - 输入法引擎环境对象
+   */
+  constructor(env) {
+    console.log('lunar translator init')
+    const config = env.engine.schema.config
+    keys.lunar = config.getString(env.namespace + '/lunar') || 'nl'
   }
 
-  return candidates
+  /**
+   * 清理农历转换器资源
+   * @param {Environment} env - 输入法引擎环境对象
+   */
+  finalizer(env) {
+    console.log('lunar translator finit')
+  }
+
+  /**
+   * 将输入转换为农历日期
+   * @param {string} input - The input string to translate
+   * @param {Segment} segment - The input segment
+   * @param {Environment} env - The Rime environment
+   * @returns {Array<Candidate>} Array of translation candidates
+   */
+  translate(input, segment, env) {
+    const candidates = []
+
+    const yieldCandidate = (text, comment) =>
+      candidates.push(new Candidate('date', segment.start, segment.end, text, comment || '', 999))
+
+    let date =
+      input === keys.lunar
+        ? new Date() // 今天
+        : input.startsWith(keys.lunar) && /^\d{8}$/.test(input.substring(keys.lunar.length))
+        ? stringToDate(input.substring(keys.lunar.length)) // 格式为 nl20250204 的日期
+        : null // 不处理
+
+    if (date) {
+      yieldCandidate(getSimpleLunarDate(date)) // 二〇二五年二月初四
+      yieldCandidate(getTraditionalLunarDate(date)) // 乙巳年二月初四
+      yieldCandidate(getTraditionalLunarDateWithZodiac(date)) // 乙巳年（蛇）二月初四
+    } else if (input.startsWith(keys.lunar) && /^\d+$/.test(input.substring(keys.lunar.length))) {
+      yieldCandidate('〔农历日期转换〕', '请输入指定日期的八位数字，如：20250303')
+    }
+
+    return candidates
+  }
 }
