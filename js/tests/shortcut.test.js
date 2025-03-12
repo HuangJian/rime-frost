@@ -20,6 +20,7 @@ const env = {
   engine: {
     context: {
       clear: () => console.log('Mock clearing context'),
+      hasMenu: () => true,
       lastSegment: null,
     },
   },

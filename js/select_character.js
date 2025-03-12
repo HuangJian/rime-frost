@@ -52,7 +52,7 @@ export class SelectCharProcessor {
     if (keyEvent.release || !keys.firstKey || !keys.lastKey) return 'kNoop'
 
     const context = env.engine.context
-    if (!context.isComposing() && !context.hasMenu()) return 'kNoop'
+    if (!context.hasMenu()) return 'kNoop'
 
     /**
      * Commit text to the input context

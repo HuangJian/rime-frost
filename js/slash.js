@@ -39,9 +39,9 @@ export class SlashProcessor {
    */
   process(keyEvent, env) {
     const context = env.engine.context
-    if (context.hasMenu() || context.isComposing()) {
+    if (context.hasMenu()) {
       const segment = context.lastSegment
-      if (keyEvent.repr === KeyRepr.slash && segment.getCandidateAt(0).text === '/') {
+      if (keyEvent.repr === KeyRepr.slash && segment?.getCandidateAt(0)?.text === '/') {
         if (segment.selectedIndex >= segment.candidateSize - 1) {
           this.direction = KeyRepr.Up
         } else if (segment.selectedIndex === 0) {

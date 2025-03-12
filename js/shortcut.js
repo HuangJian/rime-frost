@@ -82,6 +82,8 @@ export class Shortcut {
    * @returns {ProcessResult} Result indicating if key was handled
    */
   process(keyEvent, env) {
+    if (!env.engine.context.hasMenu()) return 'kNoop'
+
     const segment = env.engine.context.lastSegment
     if (!segment?.prompt?.includes('〔快捷指令〕')) return 'kNoop'
 

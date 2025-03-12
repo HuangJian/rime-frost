@@ -72,7 +72,7 @@ export class PairsProcessor {
    */
   process(keyEvent, env) {
     const context = env.engine.context
-    if (context.hasMenu() || context.isComposing()) {
+    if (context.hasMenu() && context.lastSegment) {
       const pickingCandidate = getPickingCandidate(keyEvent, context.lastSegment)
       if (!pickingCandidate) return 'kNoop'
 
