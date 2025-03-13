@@ -157,11 +157,24 @@ assertEquals(result[1].text, '(3+4)*(2-1)/(5-3)=3.5', 'Should show complex expre
 
 input = '/jssin(pi/2+pi/6)'
 result = calculator.translate(input, seg, env)
-assertEquals(parseFloat(result[0].text).toFixed(3), '0.866', 'Trigonometric function with bracket calculation should work')
+assertEquals(
+  parseFloat(result[0].text).toFixed(3),
+  '0.866',
+  'Trigonometric function with bracket calculation should work',
+)
 
 input = '/jssqrt(pow(3,2)+pow(4,2))'
 result = calculator.translate(input, seg, env)
 assertEquals(result[0].text, '5', 'Nested function calls with brackets should work')
+console.log('---------------------------------------')
+
+input = '/js0.3-0.1'
+result = calculator.translate(input, seg, env)
+assertEquals(result[0].text, '0.2', 'Float point subtraction should work')
+
+input = '/js3.8*1.4'
+result = calculator.translate(input, seg, env)
+assertEquals(result[0].text, '5.32', 'Float point multiplication should work')
 console.log('---------------------------------------')
 
 // Print test summary

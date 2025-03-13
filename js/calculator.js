@@ -4,6 +4,8 @@
 // 使用 JavaScript 实现，适配 librime-qjs 插件系统。
 // by @[HuangJian](https://github.com/HuangJian)
 
+import { BigDecimal, DecimalExpressionParser } from './lib/bigdecimal.js'
+
 /**
  * 简单计算器
  * @implements {Translator}
@@ -43,23 +45,10 @@ export class Calculator {
     const express = input.replace(/^(\/calc|\/js)/, '').trim()
     // 算式长度 < 1 直接终止(没有计算意义)
     if (express.length < 1) return []
-    const processedExpr = express
-      // 替换[0-9]!字符为fact([0-9])以实现阶乘
-      .replace(/([0-9]+)!/g, 'fact($1)')
-      // 替换 e 为Math.E，需要其前后字符均不为数字或字母
-      .replace(/(?<!\w)e(?!\w)/gi, 'operators.E')
-      // 替换 pi 为Math.PI，需要其前后字符均不为数字或字母
-      .replace(/(?<!\w)pi(?!\w)/gi, 'operators.PI')
-      // Replace all operators function calls
-      .replace(new RegExp(`(?<!\\w)(${Object.keys(operators).join('|')})\\(`, 'g'), (match, p1) => {
-        return `operators.${p1}(`
-      })
 
     const candidates = []
     try {
-      // Using Function constructor with Math object and operators
-      const calculate = new Function('operators', ` return ${processedExpr}; `)
-      const result = calculate(operators)
+      const result = calcSimpleMath(express) || calcWithOperators(express)
 
       // Handle null and undefined results
       const resultStr = result === null || result === undefined || isNaN(result) ? 'null' : result.toString()
@@ -69,7 +58,6 @@ export class Calculator {
       candidates.push(new Candidate(input, segment.start, segment.end, `\`${express}=${resultStr}\``, ''))
     } catch (error) {
       candidates.push(new Candidate(input, segment.start, segment.end, express, '解析失败: ' + error.message))
-      candidates.push(new Candidate(input, segment.start, segment.end, processedExpr, '入参'))
     }
 
     candidates.push(
@@ -95,6 +83,47 @@ export class Calculator {
 
     return candidates
   }
+}
+
+/**
+ * Calculate the result of a simple math expression
+ * @param {string} expression - The math expression to calculate
+ * @returns {number|null} The result of the calculation or null if invalid
+ */
+function calcSimpleMath(expression) {
+  if (/^[0-9.()\+\-*/]+$/.test(expression)) {
+    // 简单的四则运算，使用BigDecimal计算，以保证精度 e.g. /calc0.3-0.1 => 0.2
+    const exprWithBigDecimal = DecimalExpressionParser.generateBigDecimalExpression(expression)
+    console.log(`${exprWithBigDecimal}`)
+    if (exprWithBigDecimal) {
+      const calculate = new Function('BigDecimal', ` return ${exprWithBigDecimal}; `)
+      return calculate(BigDecimal)
+    }
+  }
+  return null
+}
+
+/**
+ * Calculate the result of a math expression with operators
+ * @param {string} expression - The math expression to calculate
+ * @returns {number|null} The result of the calculation or null if invalid
+ */
+function calcWithOperators(expression) {
+  const processedExpr = expression
+    // 替换[0-9]!字符为fact([0-9])以实现阶乘
+    .replace(/([0-9]+)!/g, 'fact($1)')
+    // 替换 e 为Math.E，需要其前后字符均不为数字或字母
+    .replace(/(?<!\w)e(?!\w)/gi, 'operators.E')
+    // 替换 pi 为Math.PI，需要其前后字符均不为数字或字母
+    .replace(/(?<!\w)pi(?!\w)/gi, 'operators.PI')
+    // Replace all operators function calls
+    .replace(new RegExp(`(?<!\\w)(${Object.keys(operators).join('|')})\\(`, 'g'), (match, p1) => {
+      return `operators.${p1}(`
+    })
+
+  // Using Function constructor with Math object and operators
+  const calculate = new Function('operators', ` return ${processedExpr}; `)
+  return calculate(operators)
 }
 
 /**
