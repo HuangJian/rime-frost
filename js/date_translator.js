@@ -29,9 +29,8 @@ export class DateTranslator {
 
   /**
    * Clean up the date translator
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log(`date translator finit`)
   }
 

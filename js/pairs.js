@@ -58,9 +58,8 @@ export class PairsProcessor {
 
   /**
    * Clean up when processor is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('pairs.js finit')
   }
 

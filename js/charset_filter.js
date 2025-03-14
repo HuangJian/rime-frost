@@ -42,9 +42,8 @@ export class CharsetFilter {
 
   /**
    * Clean up the filter
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('charset_filter finit')
   }
 

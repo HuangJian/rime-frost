@@ -42,3 +42,4 @@ amz-*
 # librime-qjs
 js/**/*.tmp.js
 js/**/*.bin
+js/node_modules/**

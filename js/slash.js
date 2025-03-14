@@ -25,9 +25,8 @@ export class SlashProcessor {
 
   /**
    * Clean up when processor is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('slash.js finit')
   }
 

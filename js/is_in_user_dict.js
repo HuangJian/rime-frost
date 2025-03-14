@@ -19,9 +19,8 @@ export class IsInUserDictFilter {
 
   /**
    * Clean up when the filter is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('is_in_user_dict.js finit')
   }
 

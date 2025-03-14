@@ -48,9 +48,8 @@ export class Shortcut {
 
   /**
    * Clean up when translator/processor is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('shortcut.js finit')
   }
 

@@ -201,9 +201,8 @@ export class NumberTranslator {
 
   /**
    * 清理数字转换模块
-   * @param {Environment} env - Rime 输入法引擎环境对象
    */
-  finalizer(env) {
+  finalizer() {
     console.log(`number translator finit`)
   }
 

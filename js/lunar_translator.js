@@ -271,9 +271,8 @@ export class LunarTranslator {
 
   /**
    * 清理农历转换器资源
-   * @param {Environment} env - 输入法引擎环境对象
    */
-  finalizer(env) {
+  finalizer() {
     console.log('lunar translator finit')
   }
 

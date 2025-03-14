@@ -35,9 +35,8 @@ export class HelpMenuTranslator {
 
   /**
    * Clean up the help menu translator
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('help_menu.js finit')
   }
 

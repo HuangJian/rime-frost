@@ -33,9 +33,8 @@ export class LongWordFilter {
 
   /**
    * Clean up when the filter is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log('long_word_filter.js finit')
   }
 

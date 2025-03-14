@@ -91,10 +91,9 @@ export class Cn2EnFilter {
 
   /**
    * 插件终止函数
-   * @param {Environment} env - 环境对象
    * @description 在输入法退出或重新部署时调用，用于清理资源
    */
-  finalizer(env) {
+  finalizer() {
     console.log('cn2en_pinyin filter finit')
   }
 

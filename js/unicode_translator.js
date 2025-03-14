@@ -30,9 +30,8 @@ export class UnicodeTranslator {
 
   /**
    * Clean up when translator is unloaded
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log(`unicode translator finit`)
   }
 

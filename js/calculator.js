@@ -21,9 +21,8 @@ export class Calculator {
 
   /**
    * Clean up the calculator translator
-   * @param {Environment} env - The Rime environment
    */
-  finalizer(env) {
+  finalizer() {
     console.log(`calculator translator finit`)
   }
 

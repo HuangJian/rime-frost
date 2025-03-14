@@ -620,10 +620,9 @@ declare class Module {
 
   /**
    * Cleanup function called when module is unloaded
-   * @param env - The runtime environment
    * @returns {void}
    */
-  finalizer?(env: Environment): void
+  finalizer?(): void
 }
 
 /**
