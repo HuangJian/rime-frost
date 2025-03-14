@@ -82,10 +82,8 @@ export class BigDecimal {
       throw new Error('Division by zero')
     }
 
-    const scale = this.#scale - bd.#scale
-    const scaleFactor = BigInt(10 ** precision)
-
-    // Perform division with extra precision to minimize rounding errors
+    // Adjust dividend to ensure enough precision
+    const scaleFactor = BigInt(10 ** (precision + bd.#scale - this.#scale))
     const expandedDividend = this.#coefficient * scaleFactor
     const quotient = expandedDividend / bd.#coefficient
 

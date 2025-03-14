@@ -94,7 +94,6 @@ function calcSimpleMath(expression) {
   if (/^[0-9.()\+\-*/]+$/.test(expression)) {
     // 简单的四则运算，使用BigDecimal计算，以保证精度 e.g. /calc0.3-0.1 => 0.2
     const exprWithBigDecimal = DecimalExpressionParser.generateBigDecimalExpression(expression)
-    console.log(`${exprWithBigDecimal}`)
     if (exprWithBigDecimal) {
       const calculate = new Function('BigDecimal', ` return ${exprWithBigDecimal}; `)
       return calculate(BigDecimal)

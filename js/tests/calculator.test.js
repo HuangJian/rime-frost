@@ -168,6 +168,10 @@ result = calculator.translate(input, seg, env)
 assertEquals(result[0].text, '5', 'Nested function calls with brackets should work')
 console.log('---------------------------------------')
 
+input = '/js0.000000000001+999'
+result = calculator.translate(input, seg, env)
+assertEquals(result[0].text, '999.000000000001', 'Float point addition should work')
+
 input = '/js0.3-0.1'
 result = calculator.translate(input, seg, env)
 assertEquals(result[0].text, '0.2', 'Float point subtraction should work')
@@ -175,6 +179,10 @@ assertEquals(result[0].text, '0.2', 'Float point subtraction should work')
 input = '/js3.8*1.4'
 result = calculator.translate(input, seg, env)
 assertEquals(result[0].text, '5.32', 'Float point multiplication should work')
+
+input = '/js17.41/1.414'
+result = calculator.translate(input, seg, env)
+assertEquals(parseFloat(result[0].text).toFixed(5), '12.31259', 'Float point division should work')
 console.log('---------------------------------------')
 
 // Print test summary
