@@ -28,9 +28,9 @@ export class En2CnFilter {
     // @ts-expect-error for unit test
     trie = env.trie || new Trie()
     // @ts-expect-error for unit test
-    const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/../lua/data/ecdict.txt`
+    const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/lua/data/ecdict.txt`
     // @ts-expect-error for unit test
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/ecdict.bin`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/ecdict.bin`
 
     let tick = Date.now()
     if (env.fileExists(binPath)) {

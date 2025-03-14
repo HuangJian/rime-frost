@@ -558,10 +558,24 @@ interface Environment {
   readonly namespace: string
 
   /**
-   * Path to user data directory
+   * Path to the user data directory
+   * @remarks This path is frontend-specific as documented in https://github.com/rime/home/wiki/UserData#%E4%BD%8D%E7%BD%AE
+   * @example Squirrel on macOS: `~/Library/Rime`
+   * @example Weasel on Windows: `%APPDATA%\Rime`
+   * @example Fcitx5 on Linux: `~/.local/share/fcitx5/rime/`
    * @readonly
    */
   readonly userDataDir: string
+
+  /**
+   * Path to the shared data directory
+   * @remarks This path is frontend-specific as documented in https://github.com/rime/home/wiki/SharedData#%E4%BD%8D%E7%BD%AE
+   * @example Squirrel on macOS: `"/Library/Input Methods/Squirrel.app/Contents/SharedSupport"`
+   * @example Weasel on Windows: `<安裝目錄>\data`
+   * @example Fcitx on Linux: `/usr/share/rime-data`
+   * @readonly
+   */
+  readonly sharedDataDir: string
 
   /**
    * Load content from a file

@@ -71,10 +71,10 @@ export class Cn2EnFilter {
     trie = env.trie || new Trie()
 
     // @ts-expect-error for unit test
-    const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/../js/data/cedict_fixed.u8`
+    const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/js/data/cedict_fixed.u8`
 
     // @ts-expect-error for unit test
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/../js/data/cedict.bin`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/cedict.bin`
 
     let tick = Date.now()
     if (env.fileExists(binPath)) {
