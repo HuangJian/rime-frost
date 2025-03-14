@@ -1,21 +1,22 @@
 # 个性化扩展
-- [x] [汉译英](./lua/cn_2en_pinyin.lua)：候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
-- [x] [英译汉](./lua/en2cn.lua)：候选的英文单词，在注解里显示它们的简单中文翻译
-- [x] [符号配对](./lua/pairs.lua)：自动符号配对，并移动光标到中间
-- [x] [斜杠符号](./lua/slash.lua)：多次按 <kbd>/</kbd> 键，切换选中其候选符号
-- [x] [帮助菜单](./lua/help_menu.lua)：输入 `/help` 显示帮助菜单
-- [x] [快捷指令](./lua/shortcut_processor.lua)：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
-- [x] [拼音上屏](./lua/cn_2en_pinyin.lua)（例：`pinyin/py1` 立即上屏 `pīn yīn`）
-- [x] [汉译英上屏](./lua/cn_2en_pinyin.lua) （例：`shuxue/en` 立即上屏 `mathematics`）
+- [x] 基于 [librime-qjs](https://github.com/HuangJian/librime-qjs)，使用 [JavaScript](./js) 重写把所有 Lua 插件 ，并补充[单元测试](./js/tests/)。
+- [x] [汉译英](./js/cn2en_pinyin.js)：候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
+- [x] [英译汉](./js/en2cn.js)：候选的英文单词，在注解里显示它们的简单中文翻译
+- [x] [符号配对](./js/pairs.js)：自动符号配对，并移动光标到中间
+- [x] [斜杠符号](./js/slash.js)：多次按 <kbd>/</kbd> 键，切换选中其候选符号
+- [x] [帮助菜单](./js/help_menu.js)：输入 `/help` 显示帮助菜单
+- [x] [快捷指令](./js/shortcut.js)：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
+- [x] [拼音上屏](./js/cn2en_pinyin.js)（例：`pinyin/py1` 立即上屏 `pīn yīn`）
+- [x] [汉译英上屏](./js/cn2en_pinyin.js) （例：`shuxue/en` 立即上屏 `mathematics`）
   - '/e' 开启翻译上屏，在注解里提示每个词语英语翻译上屏的快捷键
   - '/en' 选中第一个汉语候选项的翻译， '/ea' 选中第二个，……
     - 如果选中项只有唯一翻译，英文只接上屏（例：`shuxue/en` 立即上屏 `mathematics`）
     - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
-- [x] [扩展英文词库](./lua/en2cn.lua)： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
+- [x] [扩展英文词库](./js/en2cn.js)： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
 - [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
     `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
-  - [x] [拼音完全匹配优先](./lua/cn_2en_pinyin.lua)：输入 `zhangk` 时，`掌控`应在`展开`前
+  - [ ] [拼音完全匹配优先](./js/lib/weight.js)：输入 `zhangk` 时，`掌控`应在`展开`前
 - [x] [大模型加持](https://github.com/amzxyz/RIME-LMDG)
   - 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
   - 需要把模型文件后缀名设为 `.gram`
@@ -23,15 +24,16 @@
      octagram.cc:29] use grammar: amz-v3n2m1-zh-hans
      gram_db.cc:14 ] loading gram db: /Users/hj/Library/Rime/amz-v3n2m1-zh-hans.gram
      gram_db.cc:44 ] found double array image of size 26184192.
-     octagram.cc:29] use grammar: amz-v3n2m1-zh-hans
     ```
 - [ ] 英文发音：调用 `say` 指令，读出英文词语
 ---
 ## 功能调整
-- [x] [快速计算](./lua/calculator.lua)：输入 `/calc` 或 `/js` 触发快速计算功能
+- [x] [快速计算](./js/calculator.js)：输入 `/calc` 或 `/js` 触发快速计算功能
+  - 基于 JavaScript 的 BigInt 类型实现 [BigDecimal](./js/lib/bigdecimal.js) 运算，保证四则运算的精确性。
   - 例①：`/calc108*56` 候选 `6048`、`108*56=6048` 等
   - 例②：`/calcsin(pi/2)` 候选 `10.0`、`sin(pi/2)=1.0` 等
 
+---
 # 白霜拼音
 
 原始配置和词库由[雾凇拼音](https://github.com/iDvel/rime-ice)的 [af2480b](https://github.com/iDvel/rime-ice/commit/af2480ba1b147a6a54c0c21e2997ef451c34e036) commit 修改而来。
