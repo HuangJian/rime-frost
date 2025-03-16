@@ -137,7 +137,7 @@ interface Context {
 
   /** Current composition state */
   readonly preedit: Preedit
-  /** Last segment in current composition (null if empty) */
+  /** Last segment in current composition (null if hasMenu() is false) */
   readonly lastSegment: Segment | null
 
   /** Commit current composition */
@@ -157,12 +157,6 @@ interface Context {
    * @returns True if menu has candidates
    */
   hasMenu(): boolean
-
-  /**
-   * Check if in composition state
-   * @returns True if composing
-   */
-  isComposing(): boolean
 }
 
 /**

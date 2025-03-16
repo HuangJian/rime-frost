@@ -16,7 +16,7 @@
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等
 - [x] [模糊音扩展](./rime_frost.custom.yaml#:~:text=speller/algebra/+)：
     `z, c, s ⇋ zh, ch, sh`、`ang, eng, ing, ong ⇋ an, en, in, on` 等。
-  - [ ] [拼音完全匹配优先](./js/lib/weight.js)：输入 `zhangk` 时，`掌控`应在`展开`前
+  - [x] [拼音完全匹配优先](./js/sort_by_pinyin.js)：输入 `zhangk` 时，`掌控`应在`展开`前
 - [x] [大模型加持](https://github.com/amzxyz/RIME-LMDG)
   - 教程： https://www.saraba1st.com/2b/thread-2210738-1-1.html
   - 需要把模型文件后缀名设为 `.gram`

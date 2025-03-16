@@ -3,15 +3,13 @@
  * 1. 为中文候选项添加拼音注解和英文释义
  * 2. 支持通过 /p 快捷键选择拼音（如 /py 选择第一个候选项的拼音，/pa 选择第二个候选项的拼音）
  * 3. 支持通过 /e 快捷键选择英文翻译（如 /en 选择第一个候选项的翻译，/ea 选择第二个候选项的翻译）
- * 4. 智能排序：根据拼音匹配度、用户词典、词语长度等因素对候选项进行排序
  *
  * -------------------------------------------------------
  * 使用 JavaScript 实现，适配 librime-qjs 插件系统。
- * by @[HuangJian](https://github.com/HuangJian)
+ * @author https://github.com/HuangJian
  */
 
 import { isChineseWord } from './lib/string.js'
-import { getCandidateWeight } from './lib/weight.js'
 
 /**
  * 设置查找拼音和英文释义的候选项数量上限
@@ -107,7 +105,6 @@ export class Cn2EnFilter {
   filter(candidates, env) {
     const input = env.engine.context.input
     const ret = []
-    let sizeInserted = 0
     candidates.forEach((candidate, idx) => {
       if (
         idx >= sizeToLookupEnglish || // 只查找前面 sizeToLookupPinyin 个候选词，避免性能问题
@@ -127,17 +124,8 @@ export class Cn2EnFilter {
       }
 
       const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
-      sizeInserted += candidatesHavingTheSameText.length - 1
       ret.push(...candidatesHavingTheSameText)
     })
-
-    // Remove everything after a slash (e.g. "zhangk/e" becomes "zhangk")
-    // const inputCode = input.replace(/\/.*/, '')
-
-    // TODO: 启用模糊音后出现很多与全拼输入不匹配的词语，需要排除它们的干扰。
-    // FIXME: 尝试根据拼音的相似度来排序，但是很不稳定，而且对英文及 emoji 等特殊字符的支持不好。暂时不启用。
-    // sortTopNCandidatesByPinyin(ret, sizeToLookupEnglish + sizeInserted, inputCode)
-    // ret.filter((it) => it.weight).forEach((it) => (it.comment = it.comment + '🔨' + it.weight))
 
     hintToPickEnglish(ret, input)
     tryPrependOrCommitEnglish(ret, input, env.engine)
@@ -158,7 +146,7 @@ export class Cn2EnFilter {
  * @description 解析字典中的拼音和英文释义信息，为候选项添加注解。如果一个词有多个拼音或释义，会创建多个候选项
  */
 function extractCandidatesByInfo(candidate, info, inputCode) {
-  // 去掉雾凇拼音方案设置在注解中的拼音，但保留其它插件的注解，如 pin_cand_filter 的 📌，is_in_user_dict 的 ∞/*
+  // 去掉白霜拼音方案设置在注解中的拼音，但保留其它插件的注解，如 pin_cand_filter 的 📌，is_in_user_dict 的 ∞/*
   const prevComment = candidate.comment?.replace(/(［.+)］/g, '')
 
   // format: [diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck
@@ -182,24 +170,6 @@ function extractCandidatesByInfo(candidate, info, inputCode) {
     })
     .filter((it) => it)
   return ret.length > 0 ? ret : [candidate]
-}
-
-/**
- * 根据拼音对候选项进行排序
- * @param {Array} candidates - 候选项数组
- * @param {number} topN - 需要排序的候选项数量
- * @param {string} inputCode - 用户输入的编码
- * @description 根据拼音匹配度、用户词典、词语长度等因素对前N个候选项进行排序
- */
-function sortTopNCandidatesByPinyin(candidates, topN, inputCode) {
-  const size = candidates.length > topN ? topN : candidates.length
-  const topCandidates = candidates.slice(0, size)
-
-  topCandidates.forEach((item, idx) => (item.weight = getCandidateWeight(item, inputCode) + size - idx))
-  topCandidates.sort((a, b) => b.weight - a.weight)
-
-  candidates.splice(0, size)
-  candidates.unshift(...topCandidates)
 }
 
 /**
