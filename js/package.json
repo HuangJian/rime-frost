@@ -1,5 +1,8 @@
 {
   "name": "esm-project",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "lunar-typescript": "^1.7.8"
+  }
 }

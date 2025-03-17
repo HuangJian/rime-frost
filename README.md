@@ -28,6 +28,8 @@
 - [ ] 英文发音：调用 `say` 指令，读出英文词语
 ---
 ## 功能调整
+- [x] [农历转换](./js/lunar_translator.js)：引入 [lunar-typescript](https://github.com/6tail/lunar-typescript) 库，支持完整版天干地支生肖等。
+  - 例：`nl20250815` 候选 `乙巳（蛇）年闰六（猴）月丙辰（龙）日`
 - [x] [快速计算](./js/calculator.js)：输入 `/calc` 或 `/js` 触发快速计算功能
   - 基于 JavaScript 的 BigInt 类型实现 [BigDecimal](./js/lib/bigdecimal.js) 运算，保证四则运算的精确性。
   - 例①：`/calc108*56` 候选 `6048`、`108*56=6048` 等
