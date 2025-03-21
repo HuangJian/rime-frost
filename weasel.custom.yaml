@@ -1,0 +1,9 @@
+customization:
+  distribution_code_name: Weasel
+  distribution_version: 0.16.3
+  generator: "Weasel::UIStyleSettings"
+  modified_time: "Thu Mar 20 21:46:54 2025"
+  rime_version: 1.11.2
+patch:
+  "style/color_scheme": cool_breeze
+  style/horizontal: false
