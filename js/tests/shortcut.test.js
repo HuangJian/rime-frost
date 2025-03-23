@@ -24,6 +24,9 @@ const env = {
       lastSegment: null,
     },
   },
+  os: {
+    name: 'macOS',
+  },
 }
 
 // Create a dummy segment object
@@ -102,6 +105,18 @@ assertEquals(processResult, 'kNoop', 'Should noop when no valid segment')
 env.engine.context.lastSegment = { prompt: 'Not a shortcut prompt' }
 processResult = shortcut.process(keyEvent, env)
 assertEquals(processResult, 'kNoop', 'Should noop when not a shortcut prompt')
+console.log('---------------------------------------')
+
+// Test 8: Test OS-specific behavior
+env.os.name = 'linux'
+const linuxShortcut = new Shortcut(env)
+input = '/deploy'
+result = linuxShortcut.translate(input, seg, env)
+assertEquals(result.length, 0, 'Should return no candidates for Linux OS')
+
+input = '/screenshot'
+result = linuxShortcut.translate(input, seg, env)
+assertEquals(result.length, 0, 'Should return no candidates for Linux OS')
 console.log('---------------------------------------')
 
 // Print test summary

@@ -535,6 +535,33 @@ interface Trie {
 }
 
 /**
+ * Represents system information about the host operating system where Rime is running
+ * @namespace SystemInfo
+ * @description Provides read-only access to basic system properties including OS name, version and architecture
+ */
+interface SystemInfo {
+  /**
+   * The operating system name
+   * @readonly
+   */
+  readonly name: 'macOS' | 'Windows' | 'Linux' | 'Unknown Linux' | 'Unknown OS'
+
+  /**
+   * The operating system version string
+   * @example "10.15.7", "11.0", "22.04"
+   * @readonly
+   */
+  readonly version: string
+
+  /**
+   * The system CPU architecture
+   * @example "x86_64", "arm64", "amd64", "Unknown"
+   * @readonly
+   */
+  readonly architecture: string
+}
+
+/**
  * Represents the JavaScript runtime environment for Rime
  * @namespace Environment
  */
@@ -570,6 +597,12 @@ interface Environment {
    * @readonly
    */
   readonly sharedDataDir: string
+
+  /**
+   * The system information of the host operating system
+   * @readonly
+   */
+  readonly os: SystemInfo
 
   /**
    * Load content from a file

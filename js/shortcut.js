@@ -24,11 +24,13 @@ const shortcuts = [
             end tell
         '
     `,
+    os: ['macOS'],
   },
   {
     input: '/screenshot',
     desc: '截图录屏',
     command: `open -a "Screenshot"`,
+    os: ['macOS'],
   },
 ]
 
@@ -38,12 +40,17 @@ const shortcuts = [
  * @implements {Translator}
  */
 export class Shortcut {
+  #shortcuts = []
+
   /**
    * Initialize the translator/processor
    * @param {Environment} env - The Rime environment
    */
   constructor(env) {
     console.log('shortcut.js init')
+
+    this.#shortcuts = shortcuts
+      .filter((item) => item.os.includes(env.os.name))
   }
 
   /**
@@ -64,7 +71,7 @@ export class Shortcut {
     if (input.length < 3 || input[0] !== '/') return []
 
     const lowerInput = input.toLowerCase()
-    const candidates = shortcuts
+    const candidates = this.#shortcuts
       .filter((item) => item.input.startsWith(lowerInput))
       .map((item) => new Candidate('shortcut', segment.start, segment.end, item.input, item.desc, 999))
 
@@ -81,7 +88,7 @@ export class Shortcut {
    * @returns {ProcessResult} Result indicating if key was handled
    */
   process(keyEvent, env) {
-    if (!env.engine.context.hasMenu()) return 'kNoop'
+    if (this.#shortcuts.length === 0 || !env.engine.context.hasMenu()) return 'kNoop'
 
     const segment = env.engine.context.lastSegment
     if (!segment?.prompt?.includes('〔快捷指令〕')) return 'kNoop'
@@ -89,7 +96,7 @@ export class Shortcut {
     const pickingCandidate = getPickingCandidate(keyEvent, segment)
     if (!pickingCandidate) return 'kNoop'
 
-    const matchedShortcut = shortcuts.find((item) => item.input === pickingCandidate.text)
+    const matchedShortcut = this.#shortcuts.find((item) => item.input === pickingCandidate.text)
     if (matchedShortcut) {
       // Execute the command
       env.popen(matchedShortcut.command)

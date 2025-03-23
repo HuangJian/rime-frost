@@ -31,6 +31,10 @@ export class HelpMenuTranslator {
    */
   constructor(env) {
     console.log('help_menu.js init')
+    if (env.os.name !== 'macOS') {
+      const idx = menus.findIndex(([text, comment]) => text === '快捷指令')
+      menus.splice(idx, 1)
+    }
   }
 
   /**
