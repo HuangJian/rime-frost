@@ -64,9 +64,9 @@ export class LunarTranslator {
       yieldCandidate(`${y}年（${lunar.getYearShengXiao()}）${m}月${d}`) // 乙巳年（蛇）闰六月廿二
       const ymdShengxiao =
         `${y}（${lunar.getYearShengXiao()}）年` +
-        `${m}（${lunar.getMonthShengXiao()}）月` +
+        `${lunar.getMonthInGanZhi()}（${lunar.getMonthShengXiao()}）月` +
         `${lunar.getDayInGanZhi()}（${lunar.getDayShengXiao()}）日`
-      yieldCandidate(ymdShengxiao) // 乙巳（蛇）年闰六（猴）月丙辰（龙）日
+      yieldCandidate(ymdShengxiao) // 乙巳（蛇）年甲申（猴）月丙辰（龙）日
 
       //   `二〇二五年二月十八 乙巳(蛇)年 己卯(兔)月 乙酉(鸡)日 午(马)时 纳音[覆灯火 城头土 泉中水 杨柳木] 星期一 ` +
       //   `北方玄武 星宿[危月燕](凶) 彭祖百忌[乙不栽植千株不长 酉不会客醉坐颠狂] ` +

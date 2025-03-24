@@ -73,7 +73,7 @@ result = lunar.translate(input, seg, env)
 assertEquals(result[0].text, '二〇二五年闰六月廿二', 'Simple format should match for leap month')
 assertEquals(result[1].text, '乙巳年闰六月廿二', 'Traditional format should match for leap month')
 assertEquals(result[2].text, '乙巳年（蛇）闰六月廿二', 'Shengxiao year format should match for leap month')
-assertEquals(result[3].text, '乙巳（蛇）年闰六（猴）月丙辰（龙）日', 'Shengxiao year-month-day format should match for leap month')
+assertEquals(result[3].text, '乙巳（蛇）年甲申（猴）月丙辰（龙）日', 'Shengxiao year-month-day format should match for leap month')
 const expectedLunarText =
   `二〇二五年闰六月廿二 乙巳(蛇)年 甲申(猴)月 丙辰(龙)日 子(鼠)时 纳音[覆灯火 泉中水 沙中土 霹雳火] 星期五 ` +
   `南方朱雀 星宿[鬼金羊](凶) 彭祖百忌[丙不修灶必见灾殃 辰不哭泣必主重丧] ` +
