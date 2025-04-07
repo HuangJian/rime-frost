@@ -23,11 +23,6 @@ export class SortCandidatesByPinyinFilter {
   }
 
   /**
-   * the number of top candidates to sort
-   */
-  #topN = 100
-
-  /**
    * Sort the candidates by pinyin
    * @param {Array<Candidate>} candidates - Array of candidates to sort
    * @param {Environment} env - The Rime environment
@@ -41,15 +36,15 @@ export class SortCandidatesByPinyinFilter {
 
     const input = env.engine.context.input.replace(/\/.*$/, '') // 去掉 /py /en 等快捷键
 
-    const size = candidates.length > this.#topN ? this.#topN : candidates.length
+    const size = candidates.length > MAX_SIZE_TO_SORT ? MAX_SIZE_TO_SORT : candidates.length
     candidates.slice(0, size).forEach((candidate, idx) => {
-      const pinyin = this.extractPinyin(candidate.comment)?.replaceAll(' ', '')
+      const pinyin = extractPinyin(candidate.comment)?.replaceAll(' ', '')
       if (candidate.type === 'phrase') {
-        const weight = this.getWeightByPinyin(pinyin, input, true) + size - idx
+        const weight = getWeightByPinyin(pinyin, input, true) + size - idx
         userPhrasesIndices.push(idx)
         userPhrases.push({ candidate, weight })
       } else if (pinyin) {
-        const weight = this.getWeightByPinyin(pinyin, input, true) + size - idx
+        const weight = getWeightByPinyin(pinyin, input, true) + size - idx
         candidatesWithPinyinIndices.push(idx)
         candidatesWithPinyin.push({ candidate, weight })
       }
@@ -69,46 +64,51 @@ export class SortCandidatesByPinyinFilter {
 
     return candidates
   }
-  /**
-   * 计算候选项的权重分数，用于智能排序。
-   *
-   * @param {string | undefined} pinyin - 候选项的不带调拼音，不包含空格
-   * @param {string} input - 用户输入的编码，不包含 /py 等快捷键
-   * @param {boolean} isInUserPhrase - 候选项是否在用户词典中
-   * @returns {number} 权重分数，规则如下：
-   *    - 拼音完全匹配：+10,000
-   *    - 拼音前缀匹配：+5,000
-   *    - 拼音部分包含：+1,000 + 拼音长度
-   *    - 找不到拼音但在用户词典中：视为完全匹配 +10,000
-   *    - 其它情况：0
-   */
-  getWeightByPinyin(pinyin, input, isInUserPhrase) {
-    if (pinyin === input) {
-      return 10000
-    }
-    if (isInUserPhrase && !pinyin) {
-      return 10000
-    }
-    if (pinyin?.startsWith(input)) {
-      return 5000
-    }
-    if (pinyin?.includes(input)) {
-      return 1000 + pinyin.length
-    }
-    return 0
-  }
+}
 
-  /**
-   * Extract the pinyin from the comment of the candidate
-   * @param {string} comment the comment of the candidate
-   * @returns {string | undefined} the pinyin
-   */
-  extractPinyin(comment) {
-    const match = comment.match(/〖(.+?)〗/) // cn2en 插件提供的带调拼音
-    if (match) {
-      return unaccent(match[1])
-    }
-    const match2 = comment.match(/［(.*?)］/) || [] // 白霜拼音提供的不带调拼音
-    return match2[1]
+/**
+ * the number of top candidates to sort
+ */
+const MAX_SIZE_TO_SORT = 100
+
+/**
+ * Extract the pinyin from the comment of the candidate
+ * @param {string} comment the comment of the candidate
+ * @returns {string | undefined} the pinyin
+ */
+function extractPinyin(comment) {
+  const match = comment.match(/〖(.+?)〗/) // cn2en 插件提供的带调拼音
+  if (match) {
+    return unaccent(match[1])
   }
+  const match2 = comment.match(/［(.*?)］/) || [] // 白霜拼音提供的不带调拼音
+  return match2[1]
+}
+/**
+ * 计算候选项的权重分数，用于智能排序。
+ *
+ * @param {string | undefined} pinyin - 候选项的不带调拼音，不包含空格
+ * @param {string} input - 用户输入的编码，不包含 /py 等快捷键
+ * @param {boolean} isInUserPhrase - 候选项是否在用户词典中
+ * @returns {number} 权重分数，规则如下：
+ *    - 拼音完全匹配：+10,000
+ *    - 拼音前缀匹配：+5,000
+ *    - 拼音部分包含：+1,000 + 拼音长度
+ *    - 找不到拼音但在用户词典中：视为完全匹配 +10,000
+ *    - 其它情况：0
+ */
+function getWeightByPinyin(pinyin, input, isInUserPhrase) {
+  if (pinyin === input) {
+    return 10000
+  }
+  if (isInUserPhrase && !pinyin) {
+    return 10000
+  }
+  if (pinyin?.startsWith(input)) {
+    return 5000
+  }
+  if (pinyin?.includes(input)) {
+    return 1000 + pinyin.length
+  }
+  return 0
 }
