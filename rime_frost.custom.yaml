@@ -24,6 +24,7 @@ patch:
     - qjs_filter@en2cn                      # 英文单词简单释义。内存占用~12MB。
     - qjs_filter@cn2en_pinyin               # 汉译英，并显示拼音。内存占用~16MB。
     - qjs_filter@sort_by_pinyin             # 根据拼音与输入码的匹配程度，就地重排候选项。消除模糊音影响。
+    - qjs_filter@search.filter              # 辅助码反查滤镜。
     - qjs_filter@autocap_filter             # 英文自动大写。放在最后面，以处理 en2cn 增加的英文候选项。
 
   # 添加自定义的 qjs translator
