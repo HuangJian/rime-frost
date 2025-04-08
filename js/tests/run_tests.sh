@@ -21,14 +21,15 @@ for test_file in "$SCRIPT_DIR"/*.test.js; do
     if [ -f "$test_file" ]; then
         test_name=$(basename "$test_file")
         echo -e "${BOLD}Running $test_name...${NC}"
-        
+
         # Run the test with qjs
-        if "$SCRIPT_DIR"/qjs "$test_file"; then
+        if "$SCRIPT_DIR"/../qjs "$test_file"; then
             echo -e "${GREEN}✓ $test_name passed${NC}\n"
             ((passed_tests++))
         else
             echo -e "${RED}✗ $test_name failed${NC}\n"
             ((failed_tests++))
+            fail 1
         fi
         ((total_tests++))
     fi

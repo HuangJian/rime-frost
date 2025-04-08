@@ -3,7 +3,7 @@
 // @ts-nocheck
 
 import { Cn2EnFilter } from '../cn2en_pinyin.js'
-import { Trie } from './trie.js'
+import { Trie } from '../lib/trie.js'
 import { assertEquals } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
