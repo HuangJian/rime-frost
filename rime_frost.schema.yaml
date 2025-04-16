@@ -41,7 +41,7 @@ switches:
 # 输入引擎
 engine:
   processors:
-    - qjs_processor@select_character                # 以词定字
+    - jsc_processor@select_character                # 以词定字
     - ascii_composer
     - recognizer
     - key_binder
@@ -60,22 +60,17 @@ engine:
   translators:
     - punct_translator
     - script_translator
-    - qjs_translator@date_translator                # 时间、日期、星期
-    - qjs_translator@lunar_translator               # 农历
+    - jsc_translator@date_translator                # 时间、日期、星期
+    - jsc_translator@lunar_translator               # 农历
     - table_translator@custom_phrase                # 自定义短语 custom_phrase.txt
     - table_translator@melt_eng                     # 英文输入
     - table_translator@cn_en                        # 中英混合词汇
     - table_translator@radical_lookup               # 部件拆字反查
-    - qjs_translator@unicode_translator             # Unicode，输入 U62fc 得到 '拼'
-    - qjs_translator@number_translator              # 数字、金额大写
-    - qjs_translator@calculator                     # 计算器
+    - jsc_translator@unicode_translator             # Unicode，输入 U62fc 得到 '拼'
+    - jsc_translator@number_translator              # 数字、金额大写
+    - jsc_translator@calculator                     # 计算器
   filters:
-    - qjs_filter@charset_filter                     # 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
-    - qjs_filter@is_in_user_dict                    # 用户词典的词加上一个*
     - reverse_lookup_filter@radical_reverse_lookup  # 部件拆字滤镜
-    - qjs_filter@pin_cand_filter                    # 置顶候选项（顺序要求：置顶候选项 > Emoji > 简繁切换）
-    - qjs_filter@long_word_filter                   # 长词优先（顺序要求：长词优先 > Emoji）
-    - qjs_filter@reduce_english_filter              # 降低部分英语单词在候选项的位置
     - simplifier@emoji                              # Emoji
     - simplifier@traditionalize                     # 简繁切换
     - uniquifier                                    # 去重

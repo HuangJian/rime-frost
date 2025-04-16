@@ -13,25 +13,30 @@ patch:
 
   # 添加自定义的 qjs processors
   'engine/processors/@before 1':        # 「符号配对」仅在「以词定字」之后执行，否则无法生效
-    qjs_processor@pairs                     # 符号配对：自动补全配对的符号，并把光标左移到符号对内部。光标移动功能目前仅支持 macOS 平台。
+    jsc_processor@pairs                     # 符号配对：自动补全配对的符号，并把光标左移到符号对内部。光标移动功能目前仅支持 macOS 平台。
   'engine/processors/@before 2':        # 放最后不生效，那就继续往前堆吧
-    qjs_processor@shortcut                  # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 processor 以执行指令
+    jsc_processor@shortcut                  # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 processor 以执行指令
   'engine/processors/@before 3':        # 放最后不生效，那就继续往前堆吧
-    qjs_processor@slash                     # 连续斜杠：在候选项中交替切换
+    jsc_processor@slash                     # 连续斜杠：在候选项中交替切换
 
   # 添加自定义的 qjs filter
   engine/filters/+:
+    - jsc_filter@charset_filter             # 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
+    - jsc_filter@is_in_user_dict            # 用户词典的词加上一个*
     - jsc_filter@en2cn                      # 英文单词简单释义。内存占用~12MB。
     - jsc_filter@cn2en_pinyin               # 汉译英，并显示拼音。内存占用~16MB。
-    - qjs_filter@sort_by_pinyin             # 根据拼音与输入码的匹配程度，就地重排候选项。消除模糊音影响。
+    - jsc_filter@sort_by_pinyin             # 根据拼音与输入码的匹配程度，就地重排候选项。消除模糊音影响。
     - jsc_filter@autocap_filter             # 英文自动大写。放在最后面，以处理 en2cn 增加的英文候选项。
-    - qjs_filter@benchmark.filter             # benchmark。
-    - jsc_filter@benchmark.filter             # benchmark。
+    - jsc_filter@benchmark.filter           # benchmark。
+    - qjs_filter@benchmark.filter           # benchmark。
+    - jsc_filter@pin_cand_filter            # 置顶候选项（顺序要求：置顶候选项 > Emoji > 简繁切换）
+    - jsc_filter@long_word_filter           # 长词优先（顺序要求：长词优先 > Emoji）
+    - jsc_filter@reduce_english_filter      # 降低部分英语单词在候选项的位置
 
   # 添加自定义的 qjs translator
   engine/translators/+:
-    - qjs_translator@help_menu              # 帮助菜单，/help 触发显示
-    - qjs_translator@shortcut               # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 translator 以提供候选项
+    - jsc_translator@help_menu              # 帮助菜单，/help 触发显示
+    - jsc_translator@shortcut               # 快捷指令：/deploy 布署、/screenshot 截屏、…… 部署为 translator 以提供候选项
 
   key_binder/bindings/+:
     - {when: has_menu, accept: semicolon, send: 2}          ## 分号用于第2候选

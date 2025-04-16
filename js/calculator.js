@@ -110,12 +110,12 @@ function calcWithOperators(expression) {
   const processedExpr = expression
     // 替换[0-9]!字符为fact([0-9])以实现阶乘
     .replace(/([0-9]+)!/g, 'fact($1)')
-    // 替换 e 为Math.E，需要其前后字符均不为数字或字母
-    .replace(/(?<!\w)e(?!\w)/gi, 'operators.E')
-    // 替换 pi 为Math.PI，需要其前后字符均不为数字或字母
-    .replace(/(?<!\w)pi(?!\w)/gi, 'operators.PI')
-    // Replace all operators function calls
-    .replace(new RegExp(`(?<!\\w)(${Object.keys(operators).join('|')})\\(`, 'g'), (match, p1) => {
+    // 替换 e 为operators.E，需要其前后字符均不为数字或字母
+    .replace(/\be\b/gi, 'operators.E')
+    // 替换 pi 为operators.PI，需要其前后字符均不为数字或字母
+    .replace(/\bpi\b/gi, 'operators.PI')
+    // Replace all operators function calls (only at word boundary)
+    .replace(new RegExp('\\b(' + Object.keys(operators).join('|') + ')\\(', 'g'), (_, p1) => {
       return `operators.${p1}(`
     })
 
