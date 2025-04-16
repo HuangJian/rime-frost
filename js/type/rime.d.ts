@@ -1,7 +1,8 @@
 // Type definitions for Rime QJS API
 // Project: Rime QJS Plugin
 // -----------------------------------
-// Extracted by DeepSeek-Reasoner (R1), and manually edited by @[HuangJian](https://github.com/HuangJian)
+// @author https://github.com/HuangJian
+// @version 1.0.0+85bae6b
 
 /**
  * Represents a keyboard input event
@@ -139,6 +140,16 @@ interface Context {
   readonly preedit: Preedit
   /** Last segment in current composition (null if hasMenu() is false) */
   readonly lastSegment: Segment | null
+  /** Notifier for commit events */
+  readonly commitNotifier: Notifier
+  /** Notifier for selection events */
+  readonly selectNotifier: Notifier
+  /** Notifier for update events */
+  readonly updateNotifier: Notifier
+  /** Notifier for delete events */
+  readonly deleteNotifier: Notifier
+  /** The commit history */
+  readonly commitHistory: CommitHistory
 
   /** Commit current composition */
   commit(): void
@@ -567,6 +578,12 @@ interface SystemInfo {
  */
 interface Environment {
   /**
+   * A unique ID that identifies this environment instance, combining the plugin identifier and active Rime session
+   * @readonly
+   */
+
+  readonly id: string
+  /**
    * Reference to the Rime engine instance
    * @readonly
    */
@@ -702,4 +719,70 @@ declare class Filter extends Module {
    * @returns {Array<Candidate>} Filtered array of candidates
    */
   filter(candidates: Array<Candidate>, env: Environment): Array<Candidate>
+}
+
+/**
+ * Represents a notification signal for context changes
+ * @namespace Notifier
+ */
+interface Notifier {
+  /**
+   * Connect a listener function to receive context change notifications
+   * @param listener - Callback function that receives the updated Context
+   * @returns {NotifierConnection} Connection object that can be used to disconnect the listener
+   */
+  connect(listener: (context: Context) => void): NotifierConnection
+}
+
+/**
+ * Represents a connection to a Notifier
+ * @namespace NotifierConnection
+ */
+interface NotifierConnection {
+  /**
+   * Disconnect this listener from receiving notifications
+   */
+  disconnect(): void
+
+  /**
+   * Check if the connection is still active
+   * @readonly
+   */
+  readonly isConnected: boolean
+}
+
+/**
+ * Represents a commit record entry
+ * @namespace CommitRecord
+ */
+interface CommitRecord {
+  /** The type of the commit record */
+  type: string
+  /** The text content of the commit record */
+  text: string
+}
+
+/**
+ * Represents a history of commit records
+ * @namespace CommitHistory
+ */
+interface CommitHistory {
+  /**
+   * Push a new commit record to history
+   * @param type - Type identifier for the commit
+   * @param text - Text content to commit
+   */
+  push(type: string, text: string): void
+
+  /**
+   * Get the last commit record
+   * @returns {CommitRecord | undefined} The most recent commit record or undefined if history is empty
+   */
+  readonly last: CommitRecord | undefined
+
+  /**
+   * Get string representation of commit history
+   * @returns {string} Formatted history string
+   */
+  readonly repr: string
 }

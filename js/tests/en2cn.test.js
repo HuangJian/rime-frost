@@ -1,7 +1,7 @@
 // usage: `./qjs ./en2cn.test.js`
 
 import { En2CnFilter } from '../en2cn.js'
-import { Trie } from './trie.js'
+import { Trie } from '../lib/trie.js'
 import { assertEquals } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing

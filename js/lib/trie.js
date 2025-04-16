@@ -5,7 +5,7 @@ class TrieNode {
   constructor() {
     this.children = new Map()
     this.isEndOfWord = false
-    this.data = null // String data stored at end nodes
+    this.data = [] // Array to store multiple data entries
   }
 }
 
@@ -14,8 +14,9 @@ class TrieNode {
  * Efficient for prefix-based operations
  */
 export class Trie {
-  constructor() {
+  constructor(multipleData = false) {
     this.root = new TrieNode()
+    this.multipleData = multipleData
   }
 
   /**
@@ -34,7 +35,9 @@ export class Trie {
     }
 
     current.isEndOfWord = true
-    current.data = data
+    if (!current.data.includes(data)) {
+      current.data.push(data)
+    }
   }
 
   // format: sometimes	['sʌmtaimz] adv. 有时, 时常, 往往
@@ -67,7 +70,8 @@ export class Trie {
    */
   find(word) {
     const node = this._traverse(word)
-    return node?.data || null
+    const arr = node?.data || []
+    return this.multipleData? arr : arr[0]
   }
 
   /**
@@ -120,7 +124,7 @@ export class Trie {
     if (node.isEndOfWord) {
       result.push({
         text: prefix,
-        info: node.data,
+        info: this.multipleData ? node.data : node.data[0],
       })
     }
 

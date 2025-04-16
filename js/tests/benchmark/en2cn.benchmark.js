@@ -23,7 +23,7 @@
 // cpp       ~10ms:  mmap + Trie&vector deserialization
 
 import * as en2cn from '../../en2cn.js'
-import { Trie } from '../trie.js'
+import { Trie } from '../../lib/trie.js'
 import { assertEquals, getDetailedRuntimeInfo } from '../testutil.js'
 import * as fs from 'node:fs'
 
