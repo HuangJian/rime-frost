@@ -56,8 +56,10 @@ function checkRegex(candidates, input) {
 
 // $qjs$ Read File: duration =  36 ms, size = 6734694  <- QuickJS-NG
 // $qjs$ Load File: duration = 683 ms, size = 116617
-// $jsc$ Read File: duration =  31 ms, size = 6734694  <- JavaScriptCore
+// $jsc$ Read File: duration =  31 ms, size = 6734694  <- JavaScriptCore Interpreter
 // $jsc$ Load File: duration =  97 ms, size = 116617
+// $jsc$ Read File: duration =  21 ms, size = 6734694  <- JavaScriptCore FTL (most optimized JIT)
+// $jsc$ Load File: duration =  84 ms, size = 116617
 function loadFile(env) {
   console.log('loadFile starting...')
   const start = Date.now() // jsc 不支持 performance.now()
