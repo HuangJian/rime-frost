@@ -512,6 +512,9 @@
         loadCustomWordsIntoSet(config, listKey)
       }
     }
+    isApplicable(env) {
+      return words.has(env.engine.context.input)
+    }
     filter(candidates, env) {
       const code = env.engine.context.input
       if (!words.has(code)) return candidates

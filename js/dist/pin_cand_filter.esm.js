@@ -43,8 +43,13 @@ var PinCandidatesFilter = class {
       }
     }
   }
+  isApplicable(env) {
+    if (pinMap.size === 0) return false
+    const fullPreedit = env.engine.context.preedit.text
+    return fullPreedit.replace(/[^a-zA-Z]/g, '').length > 0
+  }
   filter(candidates, env) {
-    const fullPreedit = env.engine.context.input
+    const fullPreedit = env.engine.context.preedit.text
     const letterOnlyPreedit = fullPreedit.replace(/[^a-zA-Z]/g, '')
     if (pinMap.size === 0 || letterOnlyPreedit.length === 0) {
       return candidates

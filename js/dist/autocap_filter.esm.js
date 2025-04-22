@@ -11,6 +11,10 @@ var AutoCapFilter = class {
   finalizer() {
     console.log('autocap_filter.js finit')
   }
+  isApplicable(env) {
+    const input = env.engine.context.input
+    return input.length === 1 || regPunctuationOrLowerAlphabetLeading.test(input)
+  }
   filter(candidates, env) {
     const code = env.engine.context.input
     const codeLen = code.length

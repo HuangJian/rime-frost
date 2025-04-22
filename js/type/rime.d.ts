@@ -719,6 +719,13 @@ declare class Filter extends Module {
    * @returns {Array<Candidate>} Filtered array of candidates
    */
   filter(candidates: Array<Candidate>, env: Environment): Array<Candidate>
+
+  /**
+   * Check if the filter is applicable in the current context
+   * @param env - The runtime environment
+   * @returns {boolean} True if the filter is applicable
+   */
+  isApplicable?(env: Environment): boolean
 }
 
 /**

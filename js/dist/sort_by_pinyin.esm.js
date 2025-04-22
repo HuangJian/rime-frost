@@ -19,6 +19,9 @@ var SortCandidatesByPinyinFilter = class {
     console.log('sort_by_pinyin.js finit')
   }
   #topN = 100
+  isApplicable(env) {
+    return env.engine.context.input.length > 1
+  }
   filter(candidates, env) {
     const userPhrases = []
     const userPhrasesIndices = []

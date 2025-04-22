@@ -10,6 +10,9 @@ var LongWordFilter = class {
   finalizer() {
     console.log('long_word_filter.js finit')
   }
+  isApplicable(env) {
+    return env.engine.context.input.length > 3
+  }
   filter(candidates) {
     let firstWordLength = 0
     const ret = []

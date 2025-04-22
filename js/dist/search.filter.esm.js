@@ -97,6 +97,10 @@ var SearchFilter = class {
     this.selectListeners.forEach((it) => it.connection.disconnect())
     this.selectListeners = []
   }
+  isApplicable(env) {
+    const input = env.engine.context.input
+    return input.length > 2 && input.includes(CONDUCTOR_CODE)
+  }
   filter(candidates, env) {
     const input = env.engine.context.input
     const pos = input.indexOf(CONDUCTOR_CODE)

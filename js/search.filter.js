@@ -61,6 +61,16 @@ export class SearchFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    const input = env.engine.context.input
+    return input.length > 2 && input.includes(CONDUCTOR_CODE)
+  }
+
+  /**
    * 根据辅助码对候选项进行排序
    * @param {Array<Candidate>} candidates - 候选项数组
    * @param {Environment} env - Rime环境对象

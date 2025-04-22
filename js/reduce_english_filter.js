@@ -91,6 +91,15 @@ export class ReduceEnglishFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    return words.has(env.engine.context.input)
+  }
+
+  /**
    * Filter candidates to postpond some short English words
    * @param {Array<Candidate>} candidates - The candidates to re-order
    * @param {Environment} env - The Rime environment

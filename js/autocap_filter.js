@@ -50,6 +50,17 @@ export class AutoCapFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    // 码长为 1 或 输入码首位为小写字母或标点，不转换：
+    const input = env.engine.context.input
+    return input.length === 1 || regPunctuationOrLowerAlphabetLeading.test(input)
+  }
+
+  /**
    * Filter candidates to apply automatic capitalization rules
    * @param {Array<Candidate>} candidates - The candidates to process
    * @param {Environment} env - The Rime environment

@@ -29,6 +29,9 @@ const env = {
     },
     context: {
       input: '',
+      preedit: {
+        text: '',
+      },
     },
   },
   namespace: '*test',
@@ -39,7 +42,7 @@ const instance = new PinCandidatesFilter(env)
 console.log('---------------------------------------')
 
 // Test 2: Basic filtering with single character
-env.engine.context.input = 'le'
+env.engine.context.preedit.text ='le'
 let candidates = [new Candidate('abc', 0, 2, '了', '')]
 candidates[0].preedit = 'le'
 let filtered = instance.filter(candidates, env)
@@ -47,7 +50,7 @@ assertEquals(filtered[0].text, '了', 'filter: single character pinyin mapping')
 console.log('---------------------------------------')
 
 // Test 3: Test multiple candidates ordering
-env.engine.context.input = 'ta'
+env.engine.context.preedit.text ='ta'
 let multiCandidates = [
   new Candidate('abc', 0, 2, '它', ''),
   new Candidate('abc', 0, 2, '塔', ''),
@@ -77,7 +80,7 @@ assertEquals(equals, true, 'filter: multiple candidates should be ordered accord
 console.log('---------------------------------------')
 
 // Test 4: Test space handling and compound words
-env.engine.context.input = 'nihao'
+env.engine.context.preedit.text ='nihao'
 let compoundCandidates = [new Candidate('abc', 0, 5, '你好', '')]
 compoundCandidates[0].preedit = 'ni hao'
 filtered = instance.filter(compoundCandidates, env)
@@ -86,7 +89,7 @@ assertEquals(equals, true, 'filter: compound words with spaces should work')
 console.log('---------------------------------------')
 
 // Test 5: Test zh/ch/sh special cases
-env.engine.context.input = 'zhichi'
+env.engine.context.preedit.text ='zhichi'
 let specialCandidates = [new Candidate('abc', 0, 6, '支持', '')]
 specialCandidates[0].preedit = 'zhi chi'
 filtered = instance.filter(specialCandidates, env)
@@ -95,7 +98,7 @@ assertEquals(equals, true, 'filter: zh/ch/sh special cases should work')
 console.log('---------------------------------------')
 
 // Test 6: Test filtering unpinned candidates
-env.engine.context.input = 'chongfu'
+env.engine.context.preedit.text ='chongfu'
 let unpinnedCandidates = [
   new Candidate('abc', 0, 4, '重复', ''),
   new Candidate('abc', 0, 4, '冲突', ''),

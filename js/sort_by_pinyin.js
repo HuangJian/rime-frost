@@ -28,6 +28,15 @@ export class SortCandidatesByPinyinFilter {
   #topN = 100
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    return env.engine.context.input.length > 1
+  }
+
+  /**
    * Sort the candidates by pinyin
    * @param {Array<Candidate>} candidates - Array of candidates to sort
    * @param {Environment} env - The Rime environment

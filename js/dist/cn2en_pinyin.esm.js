@@ -34,6 +34,9 @@ var Cn2EnFilter = class {
   finalizer() {
     console.log('cn2en_pinyin filter finit')
   }
+  isApplicable(env) {
+    return env.engine.context.input.length > 1
+  }
   filter(candidates, env) {
     const input = env.engine.context.input
     const ret = []

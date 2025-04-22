@@ -21,6 +21,16 @@ export class BenchmarkFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    const input = env.engine.context.input
+    return input.endsWith('/bmregex') || input.endsWith('/bmfile')
+  }
+
+  /**
    * Filter a list of candidates
    * @param {Candidate[]} candidates - The candidates to filter
    * @param {Environment} env - The Rime environment

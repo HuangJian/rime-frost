@@ -39,6 +39,15 @@ export class LongWordFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    return env.engine.context.input.length > 3
+  }
+
+  /**
    * Filter and reorder candidates to prioritize longer words
    * @param {Array<Candidate>} candidates - Array of candidates to filter
    * @returns {Array<Candidate>} Reordered candidates with longer words promoted

@@ -144,7 +144,17 @@ export class PinCandidatesFilter {
       }
     }
   }
+  /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    if (pinMap.size === 0) return false
 
+    const fullPreedit = env.engine.context.preedit.text // 输入码
+    return fullPreedit.replace(/[^a-zA-Z]/g, '').length > 0
+  }
   /**
    * Filter candidates to pin the matched ones to the top
    * @param {Array<Candidate>} candidates - Array of candidates to re-order
@@ -155,9 +165,7 @@ export class PinCandidatesFilter {
     // 当前输入框的 preedit，未经过方案 translator/preedit_format 转换
     // 输入 nihaoshij 则为 nihaoshij，选择了「你好」后变成 你好shij
 
-    // env.engine.context.preedit.text 只有长度，不是英文字符
-    // 改用 env.engine.context.input 更稳定
-    const fullPreedit = env.engine.context.input // 输入码
+    const fullPreedit = env.engine.context.preedit.text // 输入码
     const letterOnlyPreedit = fullPreedit.replace(/[^a-zA-Z]/g, '')
     // 非汉字部分的 preedit，如 shij
     if (pinMap.size === 0 || letterOnlyPreedit.length === 0) {

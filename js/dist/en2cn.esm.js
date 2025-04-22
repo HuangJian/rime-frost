@@ -25,6 +25,9 @@ var En2CnFilter = class {
   finalizer() {
     console.log('en2cn filter finit')
   }
+  isApplicable(env) {
+    return env.engine.context.input.length > 1
+  }
   filter(candidates, env) {
     const existingWords = new Map()
     let lastEnglishCandidateIndex = candidates.length === 0 ? 0 : 5

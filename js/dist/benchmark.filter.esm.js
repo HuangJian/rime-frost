@@ -5,6 +5,10 @@ var BenchmarkFilter = class {
   finalizer() {
     console.log('benchmark.filter.js finit')
   }
+  isApplicable(env) {
+    const input = env.engine.context.input
+    return input.endsWith('/bmregex') || input.endsWith('/bmfile')
+  }
   filter(candidates, env) {
     const input = env.engine.context.input
     if (input.endsWith('/bmregex')) {

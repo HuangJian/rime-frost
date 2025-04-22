@@ -96,6 +96,15 @@ export class Cn2EnFilter {
   }
 
   /**
+   * Check if the filter is applicable in the current context
+   * @param {Environment} env - The Rime environment
+   * @returns {boolean} True if the filter is applicable, otherwise false
+   */
+  isApplicable(env) {
+    return env.engine.context.input.length > 1
+  }
+
+  /**
    * 候选项过滤器主函数
    * @param {Array<Candidate>} candidates - 候选项数组
    * @param {Environment} env - 环境对象，包含引擎上下文等信息
