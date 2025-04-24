@@ -1,5 +1,3 @@
-import { Trie } from './lib/trie.js'
-
 /**
  * 辅助码反查过滤器：使用其他方案提供的编码反查候选。
  *
@@ -31,24 +29,30 @@ export class SearchFilter {
    */
   constructor(env) {
     console.log('search.filter.js init')
-    this.dict = new Trie(true)
-    const dictYamlPath = `${env.userDataDir}/radical_pinyin.dict.yaml`
-    let entries = 0
-    env
-      .loadFile(dictYamlPath)
-      .split('\n')
-      .filter((it) => !it.startsWith('#'))
-      .forEach((line) => {
-        const pos = line.indexOf('\t')
-        if (pos > 0) {
-          // 字典文件格式：汉字<tab>编码，例如：𬭸<tab>jin'mi'xi'kuang'shu
-          const char = line.substring(0, pos)
-          const code = line.substring(pos + 1).replaceAll("'", '')
-          this.dict.insert(code, char)
-          ++entries
-        }
-      })
-    console.log(`loaded ${dictYamlPath} with ${entries} entries`)
+
+    // FIXME: 使用 Trie 字典树存储辅助码时，相同辅助码可能对应多个汉字，但只有最后一个汉字被存储，导致可能无法正确地进行辅助码反查。
+    // 如： `曔	ri'jing`, `暻	ri'jing`, `晾	ri'jing`, `景	ri'jing`
+    // @ts-expect-error for unit test
+    this.dict = env.trie || new Trie()
+    // @ts-expect-error for unit test
+    const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/radical_pinyin.dict.yaml`
+    // @ts-expect-error for unit test
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.trie`
+
+    let tick = Date.now()
+    if (env.fileExists(binPath)) {
+      this.dict.loadBinaryFile(binPath)
+      console.log(`search filter: load radical dict from bin file takes: ${Date.now() - tick}ms`)
+    } else {
+      // `𬭸\tjin'mi'xi'kuang'shu` => key = 'jinmixikuangshu', value = '𬭸'
+      const isReversed = true
+      const charsToRemove = "'"
+      this.dict.loadTextFile(txtPath, 40300, isReversed, charsToRemove)
+      console.log(`search filter: load radical dict from text file takes: ${Date.now() - tick}ms`)
+
+      this.dict.saveToBinaryFile(binPath)
+      console.log('search filter: saved radical dict to bin file for future use')
+    }
   }
 
   /**
@@ -56,7 +60,7 @@ export class SearchFilter {
    */
   finalizer() {
     console.log('search.filter.js finit')
-    this.selectListeners.forEach(it => it.connection.disconnect())
+    this.selectListeners.forEach((it) => it.connection.disconnect())
     this.selectListeners = []
   }
 
@@ -67,7 +71,8 @@ export class SearchFilter {
    */
   isApplicable(env) {
     const input = env.engine.context.input
-    return input.length > 2 && input.includes(CONDUCTOR_CODE)
+    const pos = input.indexOf(CONDUCTOR_CODE)
+    return input.length > 2 && pos > 1 && pos < input.length - 1
   }
 
   /**
@@ -79,7 +84,7 @@ export class SearchFilter {
   filter(candidates, env) {
     const input = env.engine.context.input
     const pos = input.indexOf(CONDUCTOR_CODE)
-    if (pos < 1) return candidates
+    if (pos < 1 || pos === input.length - 1) return candidates
 
     // 因为插件永驻机制，切换输入法会话不会执行 finalizer 方法。
     // 于是需要在这里清理断开的监听器，并确保当前上下文有监听器。
@@ -89,7 +94,14 @@ export class SearchFilter {
 
     // 提取辅助码并在字典中查找匹配的字符
     const key = input.substring(pos + 1)
-    const entries = (this.dict.prefixSearch(key) || []).flatMap((it) => it.info)
+    const entries = (this.dict.prefixSearch(key) || []).map((it) => it.info)
+
+    if (entries.length === 0) return candidates
+
+    // console.log(`auxiliary code: ${key}, matchesSize = ${entries.length} ================`)
+    // for (let i = 0; i < Math.min(10, entries.length); ++i) {
+    //   console.log(`search filter: matched[${i}] = `, entries[i])
+    // }
 
     // 将匹配的候选项移到前面
     const matchedCandidates = []

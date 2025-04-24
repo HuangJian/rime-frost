@@ -1,96 +1,23 @@
-var TrieNode = class {
-  constructor() {
-    this.children = new Map()
-    this.isEndOfWord = false
-    this.data = []
-  }
-}
-var Trie = class {
-  constructor(multipleData = false) {
-    this.root = new TrieNode()
-    this.multipleData = multipleData
-  }
-  insert(word, data) {
-    let current = this.root
-    for (const char of word) {
-      if (!current.children.has(char)) {
-        current.children.set(char, new TrieNode())
-      }
-      current = current.children.get(char)
-    }
-    current.isEndOfWord = true
-    if (!current.data.includes(data)) {
-      current.data.push(data)
-    }
-  }
-  parseLine(line) {
-    const idx = line.indexOf('	')
-    if (idx < 1) return null
-    return { text: line.substring(0, idx).trim().toLowerCase(), info: line.substring(idx + 1).trim() }
-  }
-  parseLineRegex(line) {
-    const matches = line.match(/^(.*?)\s+(.+)\s*$/)
-    if (!matches) return null
-    const [, text, info] = matches
-    return { text: text.trim().toLowerCase(), info: info.trim() }
-  }
-  find(word) {
-    const node = this._traverse(word)
-    const arr = node?.data || []
-    return this.multipleData ? arr : arr[0]
-  }
-  startsWith(prefix) {
-    return this._traverse(prefix) !== null
-  }
-  prefixSearch(prefix) {
-    const result = []
-    const node = this._traverse(prefix)
-    if (node !== null) {
-      this._collectWords(node, prefix, result)
-    }
-    return result
-  }
-  _traverse(word) {
-    let current = this.root
-    for (const char of word) {
-      if (!current.children.has(char)) {
-        return null
-      }
-      current = current.children.get(char)
-    }
-    return current
-  }
-  _collectWords(node, prefix, result) {
-    if (node.isEndOfWord) {
-      result.push({ text: prefix, info: this.multipleData ? node.data : node.data[0] })
-    }
-    for (const [char, childNode] of node.children) {
-      this._collectWords(childNode, prefix + char, result)
-    }
-  }
-}
 var SearchFilter = class {
   dict = null
   selectListeners = []
   constructor(env) {
     console.log('search.filter.js init')
-    this.dict = new Trie(true)
-    const dictYamlPath = `${env.userDataDir}/radical_pinyin.dict.yaml`
-    let entries = 0
-    env
-      .loadFile(dictYamlPath)
-      .split('\n')
-      .filter((it) => !it.startsWith('#'))
-      .forEach((line) => {
-        const pos = line.indexOf('	')
-        if (pos > 0) {
-          const char = line.substring(0, pos)
-          const code = line.substring(pos + 1).replaceAll("'", '')
-          this.dict.insert(code, char)
-          ++entries
-        }
-      })
-    console.log(`loaded ${dictYamlPath} with ${entries} entries`)
+    this.dict = env.trie || new Trie()
+    const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/radical_pinyin.dict.yaml`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.trie`
+    let tick = Date.now()
+    if (env.fileExists(binPath)) {
+      this.dict.loadBinaryFile(binPath)
+      console.log(`search filter: load radical dict from bin file takes: ${Date.now() - tick}ms`)
+    } else {
+      const isReversed = true
+      const charsToRemove = "'"
+      this.dict.loadTextFile(txtPath, 40300, isReversed, charsToRemove)
+      console.log(`search filter: load radical dict from text file takes: ${Date.now() - tick}ms`)
+      this.dict.saveToBinaryFile(binPath)
+      console.log('search filter: saved radical dict to bin file for future use')
+    }
   }
   finalizer() {
     console.log('search.filter.js finit')
@@ -99,16 +26,18 @@ var SearchFilter = class {
   }
   isApplicable(env) {
     const input = env.engine.context.input
-    return input.length > 2 && input.includes(CONDUCTOR_CODE)
+    const pos = input.indexOf(CONDUCTOR_CODE)
+    return input.length > 2 && pos > 1 && pos < input.length - 1
   }
   filter(candidates, env) {
     const input = env.engine.context.input
     const pos = input.indexOf(CONDUCTOR_CODE)
-    if (pos < 1) return candidates
+    if (pos < 1 || pos === input.length - 1) return candidates
     this.clearDisconnectedListeners()
     this.connectListenerToRimeContextIfNotYet(env.engine.context, env.id)
     const key = input.substring(pos + 1)
-    const entries = (this.dict.prefixSearch(key) || []).flatMap((it) => it.info)
+    const entries = (this.dict.prefixSearch(key) || []).map((it) => it.info)
+    if (entries.length === 0) return candidates
     const matchedCandidates = []
     const others = []
     candidates.forEach((candidate) => {

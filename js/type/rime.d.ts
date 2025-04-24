@@ -2,7 +2,7 @@
 // Project: Rime QJS Plugin
 // -----------------------------------
 // @author https://github.com/HuangJian
-// @version 1.0.0+85bae6b
+// @version LIB_RIME_QJS_VERSION
 
 /**
  * Represents a keyboard input event
@@ -495,7 +495,7 @@ interface Candidate {
   end: number
   /** Match quality score (0-100) */
   quality: number
-  /** The input text?  `engine.context.input` is preferred. */
+  /** The user input characters corresponding to the current candidate */
   preedit?: string
 }
 
@@ -509,12 +509,18 @@ interface Trie {
   new (): Trie
 
   /**
-   * Loads a trie from a text file
+   * Loads a trie from a text file.
+   *    - Each line in the file should contain a key-value pair separated by a tab character.
+   *    - The key and value should be separated by a tab character: `key\tvalue`.
+   *    - The key should be the string to search for, and the value should be the string to return.
+   *    - If the file contains multiple lines for the same key, only the last line will be used.
    * @param path - The path to the text file containing trie data
    * @param entrySize - The entry size (lines) of the text file
+   * @param isReversed - True if the file content is in the reversed format: `value\tkey`, default to false
+   * @param charsToRemove - The chars to remove from the line before processing, default to empty string
    * @throws {Error} If the file cannot be read or the format is invalid
    */
-  loadTextFile(path: string, entrySize?: number): void
+  loadTextFile(path: string, entrySize?: number, isReversed?: boolean, charsToRemove?: string): void
 
   /**
    * Loads a trie from a binary file

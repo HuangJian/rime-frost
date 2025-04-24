@@ -2,6 +2,7 @@
 
 // @ts-nocheck
 
+import { Trie } from '../lib/trie.js'
 import { SearchFilter } from '../search.filter.js'
 import { assert, assertEquals, totalTests, passedTests } from './testutil.js'
 
@@ -15,23 +16,36 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.quality = quality || 1
 }
 
+// Mock Trie implementation for testing
+let theTrie = new Trie()
+theTrie.loadTextFile = function (path, maxLines, isReversed) {
+  const content = '# Comment line\n' +
+    "𬭸\tjin'mi'xi'kuang'shu\n" +
+    '中\tzhong\n' +
+    '国\tguo\n' +
+    '测\tce\n' +
+    '试\tshi\n'
+
+  content
+    .split('\n')
+    .map(this.parseLine)
+    .filter((it) => it)
+    .forEach((line) => this.insert(line.info, line.text))
+}
+theTrie.saveToBinaryFile = function (path) {
+  // Do nothing
+}
+theTrie.loadBinaryFile = function (path) {
+  // Do nothing
+}
+
 // Create mock environment
 const env = {
   id: 'session1',
   testing: true,
+  trie: theTrie,
   userDataDir: './test',
-  dictYamlPath: './test/radical_pinyin.dict.yaml',
-  loadFile: function (path) {
-    // Mock dictionary content
-    return (
-      '# Comment line\n' +
-      "𬭸\tjin'mi'xi'kuang'shu\n" +
-      '中\tzhong\n' +
-      '国\tguo\n' +
-      '测\tce\n' +
-      '试\tshi\n'
-    )
-  },
+  fileExists: (path) => false,
   engine: {
     context: {
       input: '',
