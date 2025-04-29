@@ -47,16 +47,16 @@ const pyHintCodes = 'ʸᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘ�
 const pyHintKeys = 'yabcdefghijklmnoprstuvwxz'
 
 /**
- * 字典树对象，用于存储和查询中文词汇的拼音和英文释义
- * @type {Trie}
- */
-let trie
-
-/**
  * 汉译英过滤器
  * @implements {Filter}
  */
 export class Cn2EnFilter {
+  /**
+   * LevelDb对象，用于存储和查询中文词汇的拼音和英文释义
+   * @type {LevelDb}
+   */
+  levelDb = null
+
   /**
    * 初始化插件
    * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
@@ -66,24 +66,26 @@ export class Cn2EnFilter {
     console.log('cn2en_pinyin filter init')
 
     // @ts-expect-error
-    trie = env.trie || new Trie()
+    this.levelDb = env.levelDb || new LevelDb()
 
     // @ts-expect-error for unit test
     const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/js/data/cedict_fixed.u8`
 
     // @ts-expect-error for unit test
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/cedict.bin`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/cn2en.ldb`
 
     let tick = Date.now()
     if (env.fileExists(binPath)) {
-      trie.loadBinaryFile(binPath)
+      this.levelDb.loadBinaryFile(binPath)
       console.log(`cn2en_pinyin filter: load dict from binary file takes: ${Date.now() - tick}ms`)
     } else {
-      trie.loadTextFile(txtPath, 119000)
-      console.log(`cn2en_pinyin filter: load dict from text file takes: ${Date.now() - tick}ms`)
-
-      trie.saveToBinaryFile(binPath)
-      console.log('cn2en_pinyin filter: saved dict to a binary file for future use')
+      this.levelDb.loadTextFile(txtPath, {
+        lines: 119000,
+        charsToRemove: '\r',
+        onDuplicatedKey: 'Overwrite',
+      })
+      this.levelDb.saveToBinaryFile(binPath) // leveldb 必须要保存成二进制文件，否则无法使用查找功能
+      console.log(`cn2en_pinyin filter: saved dict to a binary file takes: ${Date.now() - tick}ms`)
     }
   }
 
@@ -93,6 +95,7 @@ export class Cn2EnFilter {
    */
   finalizer() {
     console.log('cn2en_pinyin filter finit')
+    this.levelDb?.close()
   }
 
   /**
@@ -126,7 +129,7 @@ export class Cn2EnFilter {
         return
       }
 
-      const info = trie.find(candidate.text)
+      const info = this.levelDb.find(candidate.text)
       if (!info) {
         ret.push(candidate)
         return

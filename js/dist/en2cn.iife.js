@@ -5,26 +5,26 @@
   function formatInfo(info) {
     return info.replace(/\\n/g, '\n		')
   }
-  var trie
   var En2CnFilter = class {
+    levelDb = null
     constructor(env) {
       console.log('en2cn filter init')
-      trie = env.trie || new Trie()
+      this.levelDb = env.levelDb || new LevelDb()
       const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/lua/data/ecdict.txt`
-      const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/ecdict.bin`
+      const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/en2cn.ldb`
       let tick = Date.now()
       if (env.fileExists(binPath)) {
-        trie.loadBinaryFile(binPath)
+        this.levelDb.loadBinaryFile(binPath)
         console.log(`en2cn filter: load dict from bin file takes: ${Date.now() - tick}ms`)
       } else {
-        trie.loadTextFile(txtPath, 6e4)
-        console.log(`en2cn filter: load dict from text file takes: ${Date.now() - tick}ms`)
-        trie.saveToBinaryFile(binPath)
-        console.log('en2cn filter: saved dict to bin file for future use')
+        this.levelDb.loadTextFile(txtPath, { lines: 6e4 })
+        this.levelDb.saveToBinaryFile(binPath)
+        console.log(`en2cn filter: load dict from text to bin takes: ${Date.now() - tick}ms`)
       }
     }
     finalizer() {
       console.log('en2cn filter finit')
+      this.levelDb?.close()
     }
     isApplicable(env) {
       return env.engine.context.input.length > 1
@@ -37,14 +37,14 @@
         if (!isPureEnglish(text)) return
         existingWords.set(text, true)
         lastEnglishCandidateIndex = idx
-        const info = trie.find(text)
+        const info = this.levelDb.find(text)
         if (info) {
           it.comment = formatInfo(info)
         }
       })
       const prefix = env.engine.context.input.toLowerCase()
       if (prefix.length > 2 && isPureEnglish(prefix)) {
-        trie.prefixSearch(prefix).forEach((it) => {
+        this.levelDb.prefixSearch(prefix).forEach((it) => {
           if (existingWords.has(it.text)) return
           const candidate = new Candidate('en', 0, prefix.length, it.text, formatInfo(it.info))
           candidates.splice(lastEnglishCandidateIndex, 0, candidate)

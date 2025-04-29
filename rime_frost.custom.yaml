@@ -26,10 +26,10 @@ patch:
     # - jsc_filter@benchmark_begin            # 通知 librime-qjs 引擎启用性能测试记录，不需要写 JavaScript 代码。
     - jsc_filter@charset_filter             # 滤除含 CJK 扩展汉字的候选项，避免候选框中出现不可见的字符集。
     - jsc_filter@is_in_user_dict            # 用户词典的词加上一个*
-    - jsc_filter@en2cn                      # 英文单词简单释义。内存占用~12MB。
-    - jsc_filter@cn2en_pinyin               # 汉译英，并显示拼音。内存占用~16MB。
+    - jsc_filter@en2cn                      # 英文单词简单释义。
+    - jsc_filter@cn2en_pinyin               # 汉译英，并显示拼音。
     - jsc_filter@sort_by_pinyin             # 根据拼音与输入码的匹配程度，就地重排候选项。消除模糊音影响。
-    # - jsc_filter@search.filter              # 辅助码反查滤镜。
+    - jsc_filter@search.filter              # 辅助码反查滤镜。
     - jsc_filter@autocap_filter             # 英文自动大写。放在最后面，以处理 en2cn 增加的英文候选项。
     - jsc_filter@benchmark.filter           # benchmark。
     - jsc_filter@benchmark.filter           # benchmark。

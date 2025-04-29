@@ -2,7 +2,6 @@
 
 // @ts-nocheck
 
-import { Trie } from '../lib/trie.js'
 import { SearchFilter } from '../search.filter.js'
 import { assert, assertEquals, totalTests, passedTests } from './testutil.js'
 
@@ -16,34 +15,60 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.quality = quality || 1
 }
 
-// Mock Trie implementation for testing
-let theTrie = new Trie()
-theTrie.loadTextFile = function (path, maxLines, isReversed) {
-  const content = '# Comment line\n' +
-    "𬭸\tjin'mi'xi'kuang'shu\n" +
-    '中\tzhong\n' +
-    '国\tguo\n' +
-    '测\tce\n' +
-    '试\tshi\n'
+// Mock LevelDb implementation for testing
+class LevelDb {
+  constructor() {
+    this.store = new Map()
+  }
 
-  content
-    .split('\n')
-    .map(this.parseLine)
-    .filter((it) => it)
-    .forEach((line) => this.insert(line.info, line.text))
-}
-theTrie.saveToBinaryFile = function (path) {
-  // Do nothing
-}
-theTrie.loadBinaryFile = function (path) {
-  // Do nothing
+  loadTextFile(path, options = {}) {
+    const content = '# Comment line\n' +
+      "𬭸\tjin'mi'xi'kuang'shu\n" +
+      '中\tzhong\n' +
+      '国\tguo\n' +
+      '测\tce\n' +
+      '试\tshi\n'
+
+    content
+      .split('\n')
+      .filter(line => line && !line.startsWith('#'))
+      .forEach(line => {
+        const [value, key] = line.split('\t')
+        if (key && value) {
+          const cleanKey = key.replace(/'/g, '')
+          this.store.set(cleanKey, value)
+        }
+      })
+  }
+
+  saveToBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  loadBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  prefixSearch(prefix) {
+    const results = []
+    for (const [key, value] of this.store.entries()) {
+      if (key.startsWith(prefix)) {
+        results.push({ info: value })
+      }
+    }
+    return results
+  }
+
+  close() {
+    this.store.clear()
+  }
 }
 
 // Create mock environment
 const env = {
   id: 'session1',
   testing: true,
-  trie: theTrie,
+  levelDb: new LevelDb(),
   userDataDir: './test',
   fileExists: (path) => false,
   engine: {

@@ -4,26 +4,32 @@
     selectListeners = []
     constructor(env) {
       console.log('search.filter.js init')
-      this.dict = env.trie || new Trie()
+      this.dict = env.levelDb || new LevelDb()
       const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/radical_pinyin.dict.yaml`
-      const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.trie`
+      const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.ldb`
       let tick = Date.now()
       if (env.fileExists(binPath)) {
         this.dict.loadBinaryFile(binPath)
         console.log(`search filter: load radical dict from bin file takes: ${Date.now() - tick}ms`)
       } else {
-        const isReversed = true
-        const charsToRemove = "'"
-        this.dict.loadTextFile(txtPath, 40300, isReversed, charsToRemove)
-        console.log(`search filter: load radical dict from text file takes: ${Date.now() - tick}ms`)
+        this.dict.loadTextFile(txtPath, {
+          lines: 40300,
+          isReversed: true,
+          charsToRemove: "'\r",
+          onDuplicatedKey: 'Concat',
+          concatSeparator: '|',
+        })
         this.dict.saveToBinaryFile(binPath)
-        console.log('search filter: saved radical dict to bin file for future use')
+        console.log(
+          `search filter: load radical dict from text file to levelDb takes: ${Date.now() - tick}ms`,
+        )
       }
     }
     finalizer() {
       console.log('search.filter.js finit')
       this.selectListeners.forEach((it) => it.connection.disconnect())
       this.selectListeners = []
+      this.dict?.close()
     }
     isApplicable(env) {
       const input = env.engine.context.input

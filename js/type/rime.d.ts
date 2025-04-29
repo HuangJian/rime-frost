@@ -464,10 +464,6 @@ interface Config {
 }
 
 /**
- * Represents a candidate in the selection menu
- * @namespace Candidate
- */
-/**
  * Represents a candidate entry in the selection menu
  * @namespace Candidate
  */
@@ -500,6 +496,54 @@ interface Candidate {
 }
 
 /**
+ * Options for parsing text files
+ * @namespace ParseTextFileOptions
+ */
+interface ParseTextFileOptions {
+  /**
+   * Whether the key-value pairs in the file are in reversed order (value\tkey)
+   * @default false
+   */
+  isReversed?: boolean
+
+  /**
+   * Characters to remove from each line before processing
+   * @default ""
+   */
+  charsToRemove?: string
+
+  /**
+   * Maximum number of lines to read from the file
+   * @default undefined - reads all lines
+   */
+  lines?: number
+
+  /**
+   * Character(s) used to separate fields in each line
+   * @default "\t" - tab character
+   */
+  delimiter?: string
+
+  /**
+   * Character(s) used to mark comment lines
+   * @default "#"
+   */
+  comment?: string
+
+  /**
+   * strategy to handle duplicated keys
+   * @default "Overwrite"
+   */
+  onDuplicatedKey?: 'Overwrite' | 'Skip' | 'Concat'
+
+  /**
+   * The separator to use when concatenating values for duplicated keys
+   * @default "$|$"
+   */
+  concatSeparator?: string
+}
+
+/**
  * Represents a dictionary trie data structure, to store the dictionary data (in key-value pairs)
  */
 interface Trie {
@@ -512,15 +556,12 @@ interface Trie {
    * Loads a trie from a text file.
    *    - Each line in the file should contain a key-value pair separated by a tab character.
    *    - The key and value should be separated by a tab character: `key\tvalue`.
-   *    - The key should be the string to search for, and the value should be the string to return.
-   *    - If the file contains multiple lines for the same key, only the last line will be used.
+   *    - Modify the parse text file options for customized format.
    * @param path - The path to the text file containing trie data
-   * @param entrySize - The entry size (lines) of the text file
-   * @param isReversed - True if the file content is in the reversed format: `value\tkey`, default to false
-   * @param charsToRemove - The chars to remove from the line before processing, default to empty string
+   * @param options - Options for parsing the text file
    * @throws {Error} If the file cannot be read or the format is invalid
    */
-  loadTextFile(path: string, entrySize?: number, isReversed?: boolean, charsToRemove?: string): void
+  loadTextFile(path: string, options?: ParseTextFileOptions): void
 
   /**
    * Loads a trie from a binary file
@@ -798,4 +839,57 @@ interface CommitHistory {
    * @returns {string} Formatted history string
    */
   readonly repr: string
+}
+
+/**
+ * Represents a LevelDB key-value store for dictionary data
+ * @namespace LevelDb
+ */
+interface LevelDb {
+  /**
+   * Creates a new instance of LevelDb
+   */
+  new (): LevelDb
+
+  /**
+   * Loads dictionary data from a text file.
+   * Each line in the file should contain a key-value pair separated by a delimiter.
+   * @param path - The path to the text file containing dictionary data
+   * @param options - Options for parsing the text file
+   * @throws {Error} If the file cannot be read or the format is invalid
+   */
+  loadTextFile(path: string, options?: ParseTextFileOptions): void
+
+  /**
+   * Loads dictionary data from a binary file
+   * @param path - The path to the binary file containing dictionary data
+   * @throws {Error} If the file cannot be read or the format is invalid
+   */
+  loadBinaryFile(path: string): void
+
+  /**
+   * Saves the current dictionary data to a binary file
+   * @param path - The path where the binary file will be saved
+   * @throws {Error} If the file cannot be written
+   */
+  saveToBinaryFile(path: string): void
+
+  /**
+   * Searches for an exact match of the key in the dictionary
+   * @param key - The string to search for
+   * @returns the value if the key exists in the dictionary, null otherwise
+   */
+  find(key: string): string | null
+
+  /**
+   * Searches for all key-value pairs in the dictionary where the key starts with the given prefix
+   * @param prefix - The prefix to search for
+   * @returns An array of objects containing matching key-value pairs
+   */
+  prefixSearch(prefix: string): Array<{ text: string; info: string }>
+
+  /**
+   * Closes the LevelDB database and releases resources
+   */
+  close(): void
 }

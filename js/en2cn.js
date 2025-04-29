@@ -7,16 +7,15 @@ function formatInfo(info) {
 }
 
 /**
- * 字典树对象，用于存储和查询英文词汇的拼中文释义
- * @type {Trie}
- */
-let trie
-
-/**
  * 英译汉过滤器
  * @implements {Filter}
  */
 export class En2CnFilter {
+  /**
+   * LevelDb对象，用于存储和查询英文单词的中文释义
+   * @type {LevelDb}
+   */
+  levelDb = null
   /**
    * 初始化插件
    * @param {Environment} env - 环境对象，包含用户数据目录、文件操作等功能
@@ -26,22 +25,20 @@ export class En2CnFilter {
     console.log('en2cn filter init')
 
     // @ts-expect-error for unit test
-    trie = env.trie || new Trie()
+    this.levelDb = env.levelDb || new LevelDb()
     // @ts-expect-error for unit test
     const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/lua/data/ecdict.txt`
     // @ts-expect-error for unit test
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/ecdict.bin`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/en2cn.ldb`
 
     let tick = Date.now()
     if (env.fileExists(binPath)) {
-      trie.loadBinaryFile(binPath)
+      this.levelDb.loadBinaryFile(binPath)
       console.log(`en2cn filter: load dict from bin file takes: ${Date.now() - tick}ms`)
     } else {
-      trie.loadTextFile(txtPath, 60000)
-      console.log(`en2cn filter: load dict from text file takes: ${Date.now() - tick}ms`)
-
-      trie.saveToBinaryFile(binPath)
-      console.log('en2cn filter: saved dict to bin file for future use')
+      this.levelDb.loadTextFile(txtPath, { lines: 60000 })
+      this.levelDb.saveToBinaryFile(binPath) // leveldb 必须要保存成二进制文件，否则无法使用查找功能
+      console.log(`en2cn filter: load dict from text to bin takes: ${Date.now() - tick}ms`)
     }
   }
 
@@ -51,6 +48,7 @@ export class En2CnFilter {
    */
   finalizer() {
     console.log('en2cn filter finit')
+    this.levelDb?.close()
   }
 
   /**
@@ -85,7 +83,7 @@ export class En2CnFilter {
       existingWords.set(text, true)
       lastEnglishCandidateIndex = idx
 
-      const info = trie.find(text)
+      const info = this.levelDb.find(text)
       if (info) {
         it.comment = formatInfo(info)
       }
@@ -96,7 +94,7 @@ export class En2CnFilter {
     // 2 个字符以下的前缀不做处理，避免刷屏
     if (prefix.length > 2 && isPureEnglish(prefix)) {
       // 将查找到的单词插入到候选项中
-      trie.prefixSearch(prefix).forEach((it) => {
+      this.levelDb.prefixSearch(prefix).forEach((it) => {
         if (existingWords.has(it.text)) return
 
         const candidate = new Candidate('en', 0, prefix.length, it.text, formatInfo(it.info))

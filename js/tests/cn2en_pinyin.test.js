@@ -3,7 +3,6 @@
 // @ts-nocheck
 
 import { Cn2EnFilter } from '../cn2en_pinyin.js'
-import { Trie } from '../lib/trie.js'
 import { assertEquals } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -16,29 +15,48 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.quality = quality || 1
 }
 
-// Create mock trie with test data
-let theTrie = new Trie()
-theTrie.loadTextFile = function (path) {
-  const content =
-    `点点\t[diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck\n` +
-    `中国\t[zhōng guó]China\n` +
-    `种过\t[zhòng guò]111\n` +
-    `总过\t[zōng guò]xxx\n` +
-    `纵谷\t[zòng gǔ]yyy\n` +
-    `测试\t[cè shì]test\n` +
-    `中\t[zhōng]center\n`
+// Mock LevelDb implementation for testing
+class LevelDb {
+  constructor() {
+    this.store = new Map()
+  }
 
-  content
-    .split('\n')
-    .map(this.parseLine)
-    .filter((it) => it)
-    .forEach((line) => this.insert(line.text, line.info))
-}
-theTrie.saveToBinaryFile = function (path) {
-  // Do nothing for test
-}
-theTrie.loadBinaryFile = function (path) {
-  // Do nothing for test
+  loadTextFile(path, options = {}) {
+    const content =
+      `点点\t[diǎn diǎn]Diandian (Chinese microblogging and social networking website)||[diǎn diǎn]point/speck\n` +
+      `中国\t[zhōng guó]China\n` +
+      `种过\t[zhòng guò]111\n` +
+      `总过\t[zōng guò]xxx\n` +
+      `纵谷\t[zòng gǔ]yyy\n` +
+      `测试\t[cè shì]test\n` +
+      `中\t[zhōng]center\n`
+
+    content
+      .split('\n')
+      .filter(line => line && !line.startsWith('#'))
+      .forEach(line => {
+        const [text, info] = line.split('\t')
+        if (text && info) {
+          this.store.set(text, info)
+        }
+      })
+  }
+
+  saveToBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  loadBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  find(text) {
+    return this.store.get(text)
+  }
+
+  close() {
+    this.store.clear()
+  }
 }
 
 let committedText = null
@@ -46,7 +64,7 @@ let committedText = null
 // Create mock environment
 const env = {
   testing: true,
-  trie: theTrie,
+  levelDb: new LevelDb(),
   cn2enTextFilePath: './cn2en.text.data',
   en2cnBinaryFilePath: './cn2en.bin.data',
   engine: {

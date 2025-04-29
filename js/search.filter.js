@@ -16,7 +16,10 @@
  * // 系统将优先显示辅助码匹配的候选项
  */
 export class SearchFilter {
-  // 使用字典树存储辅助码到汉字的映射
+  /**
+   * 使用 LevelDb 存储辅助码到汉字的映射
+   * @type {LevelDb}
+   */
   dict = null
   /**
    * 存储所有活跃的选词监听器
@@ -30,14 +33,12 @@ export class SearchFilter {
   constructor(env) {
     console.log('search.filter.js init')
 
-    // FIXME: 使用 Trie 字典树存储辅助码时，相同辅助码可能对应多个汉字，但只有最后一个汉字被存储，导致可能无法正确地进行辅助码反查。
-    // 如： `曔	ri'jing`, `暻	ri'jing`, `晾	ri'jing`, `景	ri'jing`
     // @ts-expect-error for unit test
-    this.dict = env.trie || new Trie()
+    this.dict = env.levelDb || new LevelDb()
     // @ts-expect-error for unit test
     const txtPath = env.en2cnTextFilePath || `${env.userDataDir}/radical_pinyin.dict.yaml`
     // @ts-expect-error for unit test
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.trie`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/radical.ldb`
 
     let tick = Date.now()
     if (env.fileExists(binPath)) {
@@ -45,13 +46,15 @@ export class SearchFilter {
       console.log(`search filter: load radical dict from bin file takes: ${Date.now() - tick}ms`)
     } else {
       // `𬭸\tjin'mi'xi'kuang'shu` => key = 'jinmixikuangshu', value = '𬭸'
-      const isReversed = true
-      const charsToRemove = "'"
-      this.dict.loadTextFile(txtPath, 40300, isReversed, charsToRemove)
-      console.log(`search filter: load radical dict from text file takes: ${Date.now() - tick}ms`)
-
+      this.dict.loadTextFile(txtPath, {
+        lines: 40300,
+        isReversed: true,
+        charsToRemove: "'\r",
+        onDuplicatedKey: 'Concat',
+        concatSeparator: '|',
+      })
       this.dict.saveToBinaryFile(binPath)
-      console.log('search filter: saved radical dict to bin file for future use')
+      console.log(`search filter: load radical dict from text file to levelDb takes: ${Date.now() - tick}ms`)
     }
   }
 
@@ -62,6 +65,7 @@ export class SearchFilter {
     console.log('search.filter.js finit')
     this.selectListeners.forEach((it) => it.connection.disconnect())
     this.selectListeners = []
+    this.dict?.close()
   }
 
   /**

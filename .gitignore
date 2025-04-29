@@ -42,6 +42,7 @@ amz-*
 js/**/*.tmp.js
 js/**/*.bin
 js/**/*.trie
+js/**/*.ldb
 js/node_modules/**
 js/qjs
 js/qjs.exe

@@ -13,26 +13,26 @@ var enHintKeys = 'nabcdefghijklmoprstuvwxyz'
 var pyHintCodes =
   '\u02B8\u1D43\u1D47\u1D9C\u1D48\u1D49\u1DA0\u1D4D\u02B0\u2071\u02B2\u1D4F\u02E1\u1D50\u207F\u1D52\u1D56\u02B3\u02E2\u1D57\u1D58\u1D5B\u02B7\u02E3\u1DBB'
 var pyHintKeys = 'yabcdefghijklmnoprstuvwxz'
-var trie
 var Cn2EnFilter = class {
+  levelDb = null
   constructor(env) {
     console.log('cn2en_pinyin filter init')
-    trie = env.trie || new Trie()
+    this.levelDb = env.levelDb || new LevelDb()
     const txtPath = env.cn2enTextFilePath || `${env.userDataDir}/js/data/cedict_fixed.u8`
-    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/cedict.bin`
+    const binPath = env.en2cnBinaryFilePath || `${env.userDataDir}/js/data/cn2en.ldb`
     let tick = Date.now()
     if (env.fileExists(binPath)) {
-      trie.loadBinaryFile(binPath)
+      this.levelDb.loadBinaryFile(binPath)
       console.log(`cn2en_pinyin filter: load dict from binary file takes: ${Date.now() - tick}ms`)
     } else {
-      trie.loadTextFile(txtPath, 119e3)
-      console.log(`cn2en_pinyin filter: load dict from text file takes: ${Date.now() - tick}ms`)
-      trie.saveToBinaryFile(binPath)
-      console.log('cn2en_pinyin filter: saved dict to a binary file for future use')
+      this.levelDb.loadTextFile(txtPath, { lines: 119e3, charsToRemove: '\r', onDuplicatedKey: 'Overwrite' })
+      this.levelDb.saveToBinaryFile(binPath)
+      console.log(`cn2en_pinyin filter: saved dict to a binary file takes: ${Date.now() - tick}ms`)
     }
   }
   finalizer() {
     console.log('cn2en_pinyin filter finit')
+    this.levelDb?.close()
   }
   isApplicable(env) {
     return env.engine.context.input.length > 1
@@ -51,7 +51,7 @@ var Cn2EnFilter = class {
         ret.push(candidate)
         return
       }
-      const info = trie.find(candidate.text)
+      const info = this.levelDb.find(candidate.text)
       if (!info) {
         ret.push(candidate)
         return

@@ -1,7 +1,6 @@
 // usage: `./qjs ./en2cn.test.js`
 
 import { En2CnFilter } from '../en2cn.js'
-import { Trie } from '../lib/trie.js'
 import { assertEquals } from './testutil.js'
 
 // Define a dummy Candidate constructor for testing
@@ -14,27 +13,57 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
   this.quality = quality || 1
 }
 
-let theTrie = new Trie()
-theTrie.loadTextFile = function (path) {
-  const content = `testword\tinfo for testword\napplepie\tinfo for applepie\naaa\tinfo for aaa\naaab\tinfo for aaab\n`
+// Mock LevelDb implementation for testing
+class LevelDb {
+  constructor() {
+    this.store = new Map()
+  }
 
-  content
-    .split('\n')
-    .map(this.parseLine)
-    .filter((it) => it)
-    .forEach((line) => this.insert(line.text, line.info))
-}
-theTrie.saveToBinaryFile = function (path) {
-  // Do nothing
-}
-theTrie.loadBinaryFile = function (path) {
-  // Do nothing
+  loadTextFile(path, options = {}) {
+    const content = 'testword\tinfo for testword\napplepie\tinfo for applepie\naaa\tinfo for aaa\naaab\tinfo for aaab\n'
+
+    content
+      .split('\n')
+      .filter(line => line && !line.startsWith('#'))
+      .forEach(line => {
+        const [text, info] = line.split('\t')
+        if (text && info) {
+          this.store.set(text.toLowerCase(), info)
+        }
+      })
+  }
+
+  saveToBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  loadBinaryFile(path) {
+    // Do nothing for testing
+  }
+
+  find(text) {
+    return this.store.get(text.toLowerCase())
+  }
+
+  prefixSearch(prefix) {
+    const results = []
+    for (const [text, info] of this.store.entries()) {
+      if (text.startsWith(prefix.toLowerCase())) {
+        results.push({ text, info })
+      }
+    }
+    return results
+  }
+
+  close() {
+    this.store.clear()
+  }
 }
 
 // Create a dummy env object for init and filter calls.
 const env = {
   testing: true,
-  trie: theTrie,
+  levelDb: new LevelDb(),
   en2cnTextFilePath: './en2cn.text.data',
   en2cnBinaryFilePath: './en2cn.bin.data',
   engine: {
