@@ -53,7 +53,7 @@ var SortCandidatesByPinyinFilter = class {
   }
   getWeightByPinyin(pinyin, input, isInUserPhrase) {
     if (pinyin === input) {
-      return 1e4
+      return 1e4 + pinyin.length
     }
     if (isInUserPhrase && !pinyin) {
       return 1e4

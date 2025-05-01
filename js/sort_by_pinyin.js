@@ -85,15 +85,15 @@ export class SortCandidatesByPinyinFilter {
    * @param {string} input - 用户输入的编码，不包含 /py 等快捷键
    * @param {boolean} isInUserPhrase - 候选项是否在用户词典中
    * @returns {number} 权重分数，规则如下：
-   *    - 拼音完全匹配：+10,000
+   *    - 拼音完全匹配：+10,000 + 拼音长度
    *    - 拼音前缀匹配：+5,000
    *    - 拼音部分包含：+1,000 + 拼音长度
-   *    - 找不到拼音但在用户词典中：视为完全匹配 +10,000
+   *    - 找不到拼音但在用户词典中：自造词，视为完全匹配 +10,000
    *    - 其它情况：0
    */
   getWeightByPinyin(pinyin, input, isInUserPhrase) {
     if (pinyin === input) {
-      return 10000
+      return 10000 + pinyin.length
     }
     if (isInUserPhrase && !pinyin) {
       return 10000
