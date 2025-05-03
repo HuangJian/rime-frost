@@ -501,7 +501,7 @@
   var ReduceEnglishFilter = class {
     constructor(env) {
       const config = env.engine.schema.config
-      const namespace = env.namespace.replace(/^\*/, '')
+      const namespace = env.namespace
       indexToInsertPostponees = config.getInt(namespace + '/idx') || 2
       const mode = config.getString(namespace + '/mode') || 'all'
       const listKey = namespace + '/words'
@@ -515,21 +515,23 @@
     isApplicable(env) {
       return words.has(env.engine.context.input)
     }
-    filter(candidates, env) {
+    *filter(iter, env) {
       const code = env.engine.context.input
-      if (!words.has(code)) return candidates
-      const ret = []
+      if (!words.has(code)) {
+        return iter
+      }
       const candidatesToPostpond = []
-      candidates.forEach((candidate, idx) => {
+      for (let idx = 0, candidate; idx < 120 && (candidate = iter.next()); idx++) {
         if (idx >= indexToInsertPostponees + candidatesToPostpond.length - 1) {
           candidatesToPostpond.push(candidate)
         } else if (candidate.preedit?.includes(' ') || !/^[a-zA-Z]+$/.test(candidate.text)) {
-          ret.push(candidate)
+          yield candidate
         } else {
           candidatesToPostpond.push(candidate)
         }
-      })
-      return [...ret, ...candidatesToPostpond]
+      }
+      yield* candidatesToPostpond
+      return iter
     }
   }
   globalThis.iife_instance_reduce_english_filter_iife_js = new ReduceEnglishFilter()

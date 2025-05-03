@@ -5,7 +5,7 @@
  * 例如：输入 "jiazheshenxi`jin" 可以使用 "jin" 作为辅助码来筛选候选项。
  * 功能描述文档：https://github.com/mirtlecn/rime-radical-pinyin/blob/master/search.lua.md
  *
- * @implements {Filter} 实现了Rime的Filter接口
+ * @implements {FastFilter} 实现了 Rime 的 FastFilter 接口
  * @author https://github.com/HuangJian
  *
  * @example
@@ -81,14 +81,14 @@ export class SearchFilter {
 
   /**
    * 根据辅助码对候选项进行排序
-   * @param {Array<Candidate>} candidates - 候选项数组
+   * @param {CandidateIterator} iter - 候选项迭代器，用于遍历候选项
    * @param {Environment} env - Rime环境对象
-   * @returns {Array<Candidate>} 排序后的候选项数组，匹配的候选项会被移到前面
+   * @returns {Generator<Candidate, CandidateIterator | void>} 处理后的候选项，以辅助码匹配的顺序排列
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     const input = env.engine.context.input
     const pos = input.indexOf(CONDUCTOR_CODE)
-    if (pos < 1 || pos === input.length - 1) return candidates
+    if (pos < 1 || pos === input.length - 1) return iter
 
     // 因为插件永驻机制，切换输入法会话不会执行 finalizer 方法。
     // 于是需要在这里清理断开的监听器，并确保当前上下文有监听器。
@@ -100,7 +100,7 @@ export class SearchFilter {
     const key = input.substring(pos + 1)
     const entries = (this.dict.prefixSearch(key) || []).map((it) => it.info)
 
-    if (entries.length === 0) return candidates
+    if (entries.length === 0) return iter
 
     // console.log(`auxiliary code: ${key}, matchesSize = ${entries.length} ================`)
     // for (let i = 0; i < Math.min(10, entries.length); ++i) {
@@ -110,14 +110,18 @@ export class SearchFilter {
     // 将匹配的候选项移到前面
     const matchedCandidates = []
     const others = []
-    candidates.forEach((candidate) => {
+    // 只查找前面 500 个候选词，提高性能
+    for (let idx = 0, candidate; idx < 500 && (candidate = iter.next()); idx++) {
       if (entries.includes(candidate.text)) {
         matchedCandidates.push(candidate)
       } else {
         others.push(candidate)
       }
-    })
-    return matchedCandidates.concat(others)
+    }
+
+    yield* matchedCandidates
+    yield* others
+    return iter
   }
   /**
    * 为Rime上下文添加选词事件监听器

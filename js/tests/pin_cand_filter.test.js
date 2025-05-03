@@ -2,6 +2,7 @@
 
 import { PinCandidatesFilter } from '../pin_cand_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -45,7 +46,8 @@ console.log('---------------------------------------')
 env.engine.context.preedit.text ='le'
 let candidates = [new Candidate('abc', 0, 2, '了', '')]
 candidates[0].preedit = 'le'
-let filtered = instance.filter(candidates, env)
+let generator = instance.filter(makeIterator(candidates), env)
+let filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '了', 'filter: single character pinyin mapping')
 console.log('---------------------------------------')
 
@@ -58,7 +60,8 @@ let multiCandidates = [
   new Candidate('abc', 0, 2, '他', ''),
 ]
 multiCandidates.forEach((cand) => (cand.preedit = 'ta'))
-filtered = instance.filter(multiCandidates, env)
+generator = instance.filter(makeIterator(multiCandidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(
   filtered[0].text,
   '他',
@@ -83,7 +86,8 @@ console.log('---------------------------------------')
 env.engine.context.preedit.text ='nihao'
 let compoundCandidates = [new Candidate('abc', 0, 5, '你好', '')]
 compoundCandidates[0].preedit = 'ni hao'
-filtered = instance.filter(compoundCandidates, env)
+generator = instance.filter(makeIterator(compoundCandidates), env)
+filtered = getGeneratorYieldValues(generator)
 equals = filtered[0].text === '你好'
 assertEquals(equals, true, 'filter: compound words with spaces should work')
 console.log('---------------------------------------')
@@ -92,7 +96,8 @@ console.log('---------------------------------------')
 env.engine.context.preedit.text ='zhichi'
 let specialCandidates = [new Candidate('abc', 0, 6, '支持', '')]
 specialCandidates[0].preedit = 'zhi chi'
-filtered = instance.filter(specialCandidates, env)
+generator = instance.filter(makeIterator(specialCandidates), env)
+filtered = getGeneratorYieldValues(generator)
 equals = filtered[0].text === '支持'
 assertEquals(equals, true, 'filter: zh/ch/sh special cases should work')
 console.log('---------------------------------------')
@@ -105,7 +110,8 @@ let unpinnedCandidates = [
 ]
 unpinnedCandidates[0].preedit = 'chong fu'
 unpinnedCandidates[1].preedit = 'chong tu'
-filtered = instance.filter(unpinnedCandidates, env)
+generator = instance.filter(makeIterator(unpinnedCandidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(
   filtered[0].text,
   '重复',

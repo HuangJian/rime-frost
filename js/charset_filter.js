@@ -29,7 +29,7 @@ function isCjkExt(char) {
 
 /**
  * 不可见字符集过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class CharsetFilter {
   /**
@@ -49,13 +49,17 @@ export class CharsetFilter {
 
   /**
    * Filter out candidates containing CJK extension characters
-   * @param {Array<Candidate>} candidates - The candidates to filter
+   * @param {CandidateIterator} iter - The iterator of the candidates to process
    * @param {Environment} env - The Rime environment
-   * @returns {Array<Candidate>} Filtered candidates
+   * @returns {Generator<Candidate, CandidateIterator | void>} The filtered candidates
    */
-  filter(candidates, env) {
-    return candidates.filter((item) => {
-      return !Array.from(item.text).some(isCjkExt)
-    })
+  *filter(iter, env) {
+    // 仅尝试过滤前 200 个候选词
+    for (let idx = 0, candidate; idx < 200 && (candidate = iter.next()); idx++) {
+      if (!Array.from(candidate.text).some(isCjkExt)) {
+        yield candidate
+      }
+    }
+    return iter
   }
 }

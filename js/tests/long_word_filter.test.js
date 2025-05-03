@@ -2,6 +2,7 @@
 
 import { LongWordFilter } from '../long_word_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -42,7 +43,9 @@ let candidates = [
   new Candidate('abc', 0, 4, '你好世界', ''),   // length 4
   new Candidate('abc', 0, 5, '你好啊世界', ''),  // length 5
 ]
-let filtered = instance.filter(candidates)
+let generator = instance.filter(makeIterator(candidates), env)
+let filtered = getGeneratorYieldValues(generator)
+console.log('filtered:', filtered.length)
 assertEquals(filtered[0].text, '你', 'filter: first candidate should remain unchanged')
 assertEquals(filtered[4].text, '你好啊世界', 'filter: longer words should be promoted')
 console.log('---------------------------------------')
@@ -54,7 +57,8 @@ candidates = [
   new Candidate('abc', 0, 3, '你好啊', ''),
   new Candidate('abc', 0, 4, '123456', '')
 ]
-filtered = instance.filter(candidates)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '你', 'filter: first candidate should remain unchanged')
 assertEquals(filtered[1].text, '你好啊', 'filter: long Chinese words should be promoted')
 assertEquals(filtered[2].text, 'hello', 'filter: English words should not be promoted')
@@ -70,7 +74,8 @@ candidates = [
   new Candidate('abc', 0, 5, '一二三四五', ''),
   new Candidate('abc', 0, 6, '一二三四五六', '')
 ]
-filtered = instance.filter(candidates)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[4].text, '一二三四五', 'filter: should respect startingIndex for promotion')
 console.log('---------------------------------------')
 
@@ -83,7 +88,8 @@ candidates = [
   new Candidate('abc', 0, 5, '甲乙丙丁戊', ''),
   new Candidate('abc', 0, 6, '甲乙丙丁戊己', '')
 ]
-filtered = instance.filter(candidates)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered.length, candidates.length, 'filter: should maintain total number of candidates')
 console.log('---------------------------------------')
 

@@ -2,6 +2,7 @@
 
 import { ReduceEnglishFilter } from '../reduce_english_filter.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -51,7 +52,8 @@ let candidates = [
   new Candidate('abc', 0, 5, 'hello', ''),
   new Candidate('abc', 0, 5, 'world', ''),
 ]
-let filtered = instance.filter(candidates, env)
+let generator = instance.filter(makeIterator(candidates), env)
+let filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, 'hello', 'filter: non-matching input should not change candidates')
 assertEquals(filtered[1].text, 'world', 'filter: non-matching input should not change candidates')
 console.log('---------------------------------------')
@@ -63,7 +65,8 @@ candidates = [
   new Candidate('abc', 0, 4, '测试', ''),
   new Candidate('abc', 0, 4, 'best', ''),
 ]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '测试', 'filter: matching input should lower English words position')
 assertEquals(filtered[1].text, 'test', 'filter: matching input should lower English words position')
 assertEquals(filtered[2].text, 'best', 'filter: matching input should lower English words position')
@@ -73,14 +76,16 @@ console.log('---------------------------------------')
 env.engine.context.input = 'test'
 candidates = [new Candidate('abc', 0, 4, 'test case', '')]
 candidates[0].preedit = 'test case'
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, 'test case', 'filter: words with space should not be lowered')
 console.log('---------------------------------------')
 
 // Test 5: Test filtering with non-English text
 env.engine.context.input = 'test'
 candidates = [new Candidate('abc', 0, 4, '测试', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '测试', 'filter: non-English text should not be lowered')
 console.log('---------------------------------------')
 
@@ -95,7 +100,8 @@ candidates = [
   new Candidate('abc', 0, 3, 'aid', ''),
   new Candidate('abc', 0, 3, '帮助', ''),
 ]
-filtered = instanceAllMode.filter(candidates, env)
+generator = instanceAllMode.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '帮助', 'filter: all mode should include predefined words')
 assertEquals(filtered[1].text, 'aid', 'filter: all mode should include predefined words')
 console.log('---------------------------------------')

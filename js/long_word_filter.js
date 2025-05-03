@@ -15,7 +15,7 @@ let startingIndex = 4
 
 /**
  * 长词优先过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class LongWordFilter {
   /**
@@ -49,23 +49,21 @@ export class LongWordFilter {
 
   /**
    * Filter and reorder candidates to prioritize longer words
-   * @param {Array<Candidate>} candidates - Array of candidates to filter
-   * @returns {Array<Candidate>} Reordered candidates with longer words promoted
+   * @param {CandidateIterator} iter - The iterator of the candidates to process
+   * @param {Environment} env - The Rime environment
+   * @returns {Generator<Candidate, CandidateIterator | void>} The filtered and reordered candidates
    */
-  filter(candidates) {
+  *filter(iter, env) {
     let firstWordLength = 0 // 记录第一个候选词的长度，提前的候选词至少要比第一个候选词长
 
-    const ret = []
     const shortWords = []
-    const others = []
     let founds = 0
-    candidates.forEach((candidate, idx) => {
+    for (
+      let idx = 0, candidate;
       // 找齐了或者 shortWords 太大了，就不找了，一般前 50 个就够了
-      if (founds >= maxPromoteeSize || shortWords.length > 50) {
-        others.push(candidate)
-        return
-      }
-
+      founds < maxPromoteeSize && shortWords.length <= 50 && (candidate = iter.next());
+      idx++
+    ) {
       const textLength = candidate.text.length
       if (firstWordLength < 1) {
         // 只以第一个候选项的长度作为参考
@@ -74,20 +72,18 @@ export class LongWordFilter {
 
       if (idx < startingIndex) {
         // 不处理 startingIndex 之前的候选项
-        ret.push(candidate)
+        yield candidate
       } else if (textLength <= firstWordLength || /[a-zA-Z0-9]+/.test(candidate.text)) {
         // 收录短词
         shortWords.push(candidate)
       } else {
         // 长词直接 yield
-        ret.push(candidate)
+        yield candidate
         founds++
       }
-    })
-    ret.push(...shortWords)
-    ret.push(...others)
-
-    return ret
+    }
+    yield* shortWords
+    return iter
   }
 }
 

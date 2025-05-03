@@ -28,29 +28,34 @@ var En2CnFilter = class {
   isApplicable(env) {
     return env.engine.context.input.length > 1
   }
-  filter(candidates, env) {
+  *filter(iter, env) {
     const existingWords = new Map()
-    let lastEnglishCandidateIndex = candidates.length === 0 ? 0 : 5
-    candidates.forEach((it, idx) => {
-      const text = it.text.toLowerCase()
-      if (!isPureEnglish(text)) return
+    let lastEnglishCandidateIndex = 5
+    const processed = []
+    for (let idx = 0, candidate; idx < 120 && (candidate = iter.next()); idx++) {
+      processed.push(candidate)
+      const text = candidate.text.toLowerCase()
+      if (!isPureEnglish(text)) {
+        continue
+      }
       existingWords.set(text, true)
       lastEnglishCandidateIndex = idx
       const info = this.levelDb.find(text)
       if (info) {
-        it.comment = formatInfo(info)
+        candidate.comment = formatInfo(info)
       }
-    })
+    }
     const prefix = env.engine.context.input.toLowerCase()
     if (prefix.length > 2 && isPureEnglish(prefix)) {
       this.levelDb.prefixSearch(prefix).forEach((it) => {
         if (existingWords.has(it.text)) return
         const candidate = new Candidate('en', 0, prefix.length, it.text, formatInfo(it.info))
-        candidates.splice(lastEnglishCandidateIndex, 0, candidate)
+        processed.splice(lastEnglishCandidateIndex, 0, candidate)
         lastEnglishCandidateIndex++
       })
     }
-    return candidates
+    yield* processed
+    return iter
   }
 }
 export { En2CnFilter }

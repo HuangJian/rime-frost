@@ -6,7 +6,7 @@
 
 /**
  * 用户词典词汇过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class IsInUserDictFilter {
   /**
@@ -26,18 +26,20 @@ export class IsInUserDictFilter {
 
   /**
    * Filter candidates to add special markers for user phrases and sentences
-   * @param {Array<Candidate>} candidates - Array of candidates to filter
+   * @param {CandidateIterator} iter - The iterator of the candidates to process
    * @param {Environment} env - The Rime environment
-   * @returns {Array<Candidate>} The filtered candidates with markers added
+   * @returns {Generator<Candidate, CandidateIterator | void>} The filtered candidates with markers added
    */
-  filter(candidates, env) {
-    candidates.forEach(function (candidate) {
+  *filter(iter, env) {
+    // 仅标记前 100 个候选词，提高性能
+    for (let idx = 0, candidate; idx < 100 && (candidate = iter.next()); idx++) {
       if (candidate.type === 'user_phrase') {
         candidate.comment = '*'
       } else if (candidate.type === 'sentence') {
         candidate.comment = '∞'
       }
-    })
-    return candidates
+      yield candidate
+    }
+    return iter
   }
 }

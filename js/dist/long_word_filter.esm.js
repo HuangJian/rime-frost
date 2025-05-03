@@ -13,33 +13,30 @@ var LongWordFilter = class {
   isApplicable(env) {
     return env.engine.context.input.length > 3
   }
-  filter(candidates) {
+  *filter(iter, env) {
     let firstWordLength = 0
-    const ret = []
     const shortWords = []
-    const others = []
     let founds = 0
-    candidates.forEach((candidate, idx) => {
-      if (founds >= maxPromoteeSize || shortWords.length > 50) {
-        others.push(candidate)
-        return
-      }
+    for (
+      let idx = 0, candidate;
+      founds < maxPromoteeSize && shortWords.length <= 50 && (candidate = iter.next());
+      idx++
+    ) {
       const textLength = candidate.text.length
       if (firstWordLength < 1) {
         firstWordLength = textLength
       }
       if (idx < startingIndex) {
-        ret.push(candidate)
+        yield candidate
       } else if (textLength <= firstWordLength || /[a-zA-Z0-9]+/.test(candidate.text)) {
         shortWords.push(candidate)
       } else {
-        ret.push(candidate)
+        yield candidate
         founds++
       }
-    })
-    ret.push(...shortWords)
-    ret.push(...others)
-    return ret
+    }
+    yield* shortWords
+    return iter
   }
 }
 function getConfigIntValueOrDefault(config, key, defaultValue) {

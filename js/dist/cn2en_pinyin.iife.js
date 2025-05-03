@@ -42,33 +42,34 @@
     isApplicable(env) {
       return env.engine.context.input.length > 1
     }
-    filter(candidates, env) {
+    *filter(iter, env) {
       const input = env.engine.context.input
-      const ret = []
-      candidates.forEach((candidate, idx) => {
+      const processed = []
+      for (let idx = 0, candidate; idx < sizeToLookupEnglish && (candidate = iter.next()); idx++) {
         if (
-          idx >= sizeToLookupEnglish ||
           candidate.text.length > 10 ||
           !isChineseWord(candidate.text) ||
           candidate.comment.includes('\u3016') ||
           false
         ) {
-          ret.push(candidate)
-          return
+          processed.push(candidate)
+          continue
         }
         const info = this.levelDb.find(candidate.text)
-        if (!info) {
-          ret.push(candidate)
-          return
+        if (info) {
+          extractCandidatesByInfo(candidate, info, input).forEach((it) => {
+            processed.push(it)
+          })
+        } else {
+          processed.push(candidate)
         }
-        const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
-        ret.push(...candidatesHavingTheSameText)
-      })
-      hintToPickEnglish(ret, input)
-      tryPrependOrCommitEnglish(ret, input, env.engine)
-      hintToPickPinyin(ret, input)
-      tryPrependOrCommitPinyin(ret, input, env.engine)
-      return ret
+      }
+      hintToPickEnglish(processed, input)
+      tryPrependOrCommitEnglish(processed, input, env.engine)
+      hintToPickPinyin(processed, input)
+      tryPrependOrCommitPinyin(processed, input, env.engine)
+      yield* processed
+      return iter
     }
   }
   function extractCandidatesByInfo(candidate, info, inputCode) {

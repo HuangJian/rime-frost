@@ -22,10 +22,13 @@
     finalizer() {
       console.log('charset_filter finit')
     }
-    filter(candidates, env) {
-      return candidates.filter((item) => {
-        return !Array.from(item.text).some(isCjkExt)
-      })
+    *filter(iter, env) {
+      for (let idx = 0, candidate; idx < 200 && (candidate = iter.next()); idx++) {
+        if (!Array.from(candidate.text).some(isCjkExt)) {
+          yield candidate
+        }
+      }
+      return iter
     }
   }
   globalThis.iife_instance_charset_filter_iife_js = new CharsetFilter()

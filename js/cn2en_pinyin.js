@@ -48,7 +48,7 @@ const pyHintKeys = 'yabcdefghijklmnoprstuvwxz'
 
 /**
  * 汉译英过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class Cn2EnFilter {
   /**
@@ -109,43 +109,45 @@ export class Cn2EnFilter {
 
   /**
    * 候选项过滤器主函数
-   * @param {Array<Candidate>} candidates - 候选项数组
+   * @param {CandidateIterator} iter - 候选项迭代器，用于遍历候选项
    * @param {Environment} env - 环境对象，包含引擎上下文等信息
-   * @returns {Array<Candidate>} 处理后的候选项数组
+   * @returns {Generator<Candidate, CandidateIterator | void>} 处理后的候选项
    * @description 为中文候选项添加拼音注解和英文释义，并处理拼音和英文翻译的快捷选择功能
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     const input = env.engine.context.input
-    const ret = []
-    candidates.forEach((candidate, idx) => {
+
+    const processed = []
+    // 只查找前面 sizeToLookupPinyin 个候选词，提高性能
+    for (let idx = 0, candidate; idx < sizeToLookupEnglish && (candidate = iter.next()); idx++) {
       if (
-        idx >= sizeToLookupEnglish || // 只查找前面 sizeToLookupPinyin 个候选词，避免性能问题
         candidate.text.length > 10 || // 超过10个字的词不查找
         !isChineseWord(candidate.text) || // not a Chinese word
         candidate.comment.includes('〖') || // 已经查过了
         false
       ) {
-        ret.push(candidate)
-        return
+        processed.push(candidate)
+        continue
       }
 
       const info = this.levelDb.find(candidate.text)
-      if (!info) {
-        ret.push(candidate)
-        return
+      if (info) {
+        extractCandidatesByInfo(candidate, info, input).forEach((it) => {
+          processed.push(it)
+        })
+      } else {
+        processed.push(candidate)
       }
+    }
 
-      const candidatesHavingTheSameText = extractCandidatesByInfo(candidate, info, input)
-      ret.push(...candidatesHavingTheSameText)
-    })
+    hintToPickEnglish(processed, input)
+    tryPrependOrCommitEnglish(processed, input, env.engine)
 
-    hintToPickEnglish(ret, input)
-    tryPrependOrCommitEnglish(ret, input, env.engine)
+    hintToPickPinyin(processed, input)
+    tryPrependOrCommitPinyin(processed, input, env.engine)
 
-    hintToPickPinyin(ret, input)
-    tryPrependOrCommitPinyin(ret, input, env.engine)
-
-    return ret
+    yield* processed
+    return iter
   }
 }
 

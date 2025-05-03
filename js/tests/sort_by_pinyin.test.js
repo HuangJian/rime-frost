@@ -2,6 +2,7 @@
 
 import { SortCandidatesByPinyinFilter } from '../sort_by_pinyin.js'
 import { assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -54,7 +55,8 @@ let candidates = [
   new Candidate('abc', 0, 2, '尼姑', '〖ní gū〗'),
   new Candidate('phrase', 0, 2, '逆行', '〖nì xíng〗'),
 ]
-let filtered = instance.filter(candidates, env)
+let generator = instance.filter(makeIterator(candidates), env)
+let filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '你', 'filter: exact pinyin match should be first')
 assertEquals(filtered[1].text, '你好', 'filter: prefix pinyin match should be second')
 console.log('---------------------------------------')
@@ -67,7 +69,8 @@ let mixedCandidates = [
   new Candidate('phrase', 0, 2, '逆行', '〖nì xíng〗'),
   new Candidate('cn', 0, 1, '你', '〖nǐ〗'),
 ]
-let mixedFiltered = instance.filter(mixedCandidates, env)
+let mixedGenerator = instance.filter(makeIterator(mixedCandidates), env)
+let mixedFiltered = getGeneratorYieldValues(mixedGenerator)
 assertEquals(mixedFiltered[0].text, 'nice', 'filter: English word should be kept as is')
 assertEquals(mixedFiltered[1].text, '你', 'filter: Chinese character with fully matching pinyin should be first')
 assertEquals(mixedFiltered[2].text, '😊', 'filter: Emoji candidate should be kept as is')

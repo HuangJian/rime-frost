@@ -5,15 +5,16 @@ var IsInUserDictFilter = class {
   finalizer() {
     console.log('is_in_user_dict.js finit')
   }
-  filter(candidates, env) {
-    candidates.forEach(function (candidate) {
+  *filter(iter, env) {
+    for (let idx = 0, candidate; idx < 100 && (candidate = iter.next()); idx++) {
       if (candidate.type === 'user_phrase') {
         candidate.comment = '*'
       } else if (candidate.type === 'sentence') {
         candidate.comment = '\u221E'
       }
-    })
-    return candidates
+      yield candidate
+    }
+    return iter
   }
 }
 export { IsInUserDictFilter }

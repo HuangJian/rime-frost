@@ -33,25 +33,27 @@ var SearchFilter = class {
     const pos = input.indexOf(CONDUCTOR_CODE)
     return input.length > 2 && pos > 1 && pos < input.length - 1
   }
-  filter(candidates, env) {
+  *filter(iter, env) {
     const input = env.engine.context.input
     const pos = input.indexOf(CONDUCTOR_CODE)
-    if (pos < 1 || pos === input.length - 1) return candidates
+    if (pos < 1 || pos === input.length - 1) return iter
     this.clearDisconnectedListeners()
     this.connectListenerToRimeContextIfNotYet(env.engine.context, env.id)
     const key = input.substring(pos + 1)
     const entries = (this.dict.prefixSearch(key) || []).map((it) => it.info)
-    if (entries.length === 0) return candidates
+    if (entries.length === 0) return iter
     const matchedCandidates = []
     const others = []
-    candidates.forEach((candidate) => {
+    for (let idx = 0, candidate; idx < 500 && (candidate = iter.next()); idx++) {
       if (entries.includes(candidate.text)) {
         matchedCandidates.push(candidate)
       } else {
         others.push(candidate)
       }
-    })
-    return matchedCandidates.concat(others)
+    }
+    yield* matchedCandidates
+    yield* others
+    return iter
   }
   connectListenerToRimeContextIfNotYet(context, envId) {
     if (!this.selectListeners.some((it) => it.envId === envId)) {

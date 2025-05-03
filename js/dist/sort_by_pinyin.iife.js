@@ -23,34 +23,36 @@
     isApplicable(env) {
       return env.engine.context.input.length > 1
     }
-    filter(candidates, env) {
+    *filter(iter, env) {
       const userPhrases = []
       const userPhrasesIndices = []
       const candidatesWithPinyin = []
       const candidatesWithPinyinIndices = []
       const input = env.engine.context.input.replace(/\/.*$/, '')
-      const size = candidates.length > this.#topN ? this.#topN : candidates.length
-      candidates.slice(0, size).forEach((candidate, idx) => {
+      const fetched = []
+      for (let idx = 0, candidate; idx < this.#topN && (candidate = iter.next()); idx++) {
+        fetched.push(candidate)
         const pinyin = this.extractPinyin(candidate.comment)?.replaceAll(' ', '')
         if (candidate.type === 'user_phrase') {
-          const weight = this.getWeightByPinyin(pinyin, input, true) + size - idx
+          const weight = this.getWeightByPinyin(pinyin, input, true) + this.#topN - idx
           userPhrasesIndices.push(idx)
           userPhrases.push({ candidate, weight })
         } else if (pinyin) {
-          const weight = this.getWeightByPinyin(pinyin, input, false) + size - idx
+          const weight = this.getWeightByPinyin(pinyin, input, false) + this.#topN - idx
           candidatesWithPinyinIndices.push(idx)
           candidatesWithPinyin.push({ candidate, weight })
         }
-      })
+      }
       userPhrases.sort((a, b) => b.weight - a.weight)
       userPhrasesIndices.forEach((originalIndex, idx) => {
-        candidates[originalIndex] = userPhrases[idx].candidate
+        fetched[originalIndex] = userPhrases[idx].candidate
       })
       candidatesWithPinyin.sort((a, b) => b.weight - a.weight)
       candidatesWithPinyinIndices.forEach((originalIndex, idx) => {
-        candidates[originalIndex] = candidatesWithPinyin[idx].candidate
+        fetched[originalIndex] = candidatesWithPinyin[idx].candidate
       })
-      return candidates
+      yield* fetched
+      return iter
     }
     getWeightByPinyin(pinyin, input, isInUserPhrase) {
       if (pinyin === input) {

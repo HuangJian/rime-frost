@@ -3,7 +3,8 @@
 // @ts-nocheck
 
 import { Cn2EnFilter } from '../cn2en_pinyin.js'
-import { assertEquals } from './testutil.js'
+import { assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -88,49 +89,50 @@ console.log('---------------------------------------')
 // Test 2: Test basic filtering
 env.engine.context.input = 'dian'
 let candidates = [new Candidate('cn', 0, 4, '点点', '')]
-let filtered = instance.filter(candidates, env)
-assertEquals(filtered[0].comment.includes('diǎn diǎn'), true, 'filter: added pinyin annotation')
-assertEquals(filtered[0].comment.includes('Diandian'), true, 'filter: added English translation')
-assertEquals(filtered[1].comment.includes('diǎn diǎn'), true, 'filter: added pinyin annotation')
-assertEquals(filtered[1].comment.includes('point/speck'), true, 'filter: added English translation')
+let filtered = instance.filter(makeIterator(candidates), env)
+let result = getGeneratorYieldValues(filtered)
+assertEquals(result[0].comment.includes('diǎn diǎn'), true, 'filter: added pinyin annotation')
+assertEquals(result[0].comment.includes('Diandian'), true, 'filter: added English translation')
+assertEquals(result[1].comment.includes('diǎn diǎn'), true, 'filter: added pinyin annotation')
+assertEquals(result[1].comment.includes('point/speck'), true, 'filter: added English translation')
 console.log('Test 2: Basic filtering tests passed')
 console.log('---------------------------------------')
 
 // Test 3: Test pinyin selection feature
 env.engine.context.input = 'dian/p'
-filtered = instance.filter(candidates, env)
-assertEquals(filtered[0].comment.startsWith('⇖ʸ'), true, 'filter: added hint code for pinyin selection')
+filtered = instance.filter(makeIterator(candidates), env)
+result = getGeneratorYieldValues(filtered)
+assertEquals(result[0].comment.startsWith('⇖ʸ'), true, 'filter: added hint code for pinyin selection')
 console.log('Test 3: Pinyin selection feature tests passed')
 console.log('---------------------------------------')
 
 // Test 4: Test commit pinyin function immediately
-env.engine.context.input = 'zhong'
 candidates = [new Candidate('py', 0, 4, '中', ''), new Candidate('py', 0, 4, '中国', '')]
-filtered = instance.filter(candidates, env)
-env.engine.context.input = 'zhong/p'
-filtered = instance.filter(filtered, env)
 env.engine.context.input = 'zhong/py'
-filtered = instance.filter(filtered, env)
+filtered = instance.filter(makeIterator(candidates), env)
+result = getGeneratorYieldValues(filtered)
 assertEquals(committedText, 'zhōng', 'commit correct pinyin immediately')
 console.log('Test 4: commit pinyin immediately function tests passed')
 console.log('---------------------------------------')
 
 // Test 5: Test English translation feature
 env.engine.context.input = 'dian/e'
-filtered = instance.filter(candidates, env)
-assertEquals(filtered[0].comment.startsWith('⇖ⁿ'), true, 'filter: added hint code for English translation')
-assertEquals(filtered[1].comment.startsWith('⇖ᵃ'), true, 'filter: added hint code for English translation')
+filtered = instance.filter(makeIterator(candidates), env)
+result = getGeneratorYieldValues(filtered)
+assertEquals(result[0].comment.startsWith('⇖ⁿ'), true, 'filter: added hint code for English translation')
+assertEquals(result[1].comment.startsWith('⇖ᵃ'), true, 'filter: added hint code for English translation')
 console.log('Test 5: English translation feature tests passed')
 console.log('---------------------------------------')
 
 // Test 6: Test commit english function immediately
 env.engine.context.input = 'zhongguo/e'
 candidates = [new Candidate('py', 0, 4, '中国', '')]
-filtered = instance.filter(candidates, env)
+filtered = instance.filter(makeIterator(candidates), env)
 env.engine.context.input = 'zhong/en'
-filtered = instance.filter(filtered, env)
+filtered = instance.filter(makeIterator(getGeneratorYieldValues(filtered)), env)
 assertEquals(committedText, 'China', 'commit correct English immediately')
 console.log('Test 6: commit English immediately function tests passed')
 console.log('---------------------------------------')
 
-console.log('All tests passed!')
+// Print test summary
+console.log(`\nTest Summary: ${passedTests}/${totalTests} tests passed`)

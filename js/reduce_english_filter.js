@@ -64,7 +64,7 @@ function loadCustomWordsIntoSet(config, key) {
 
 /**
  * 降低部分英语单词在候选项的位置
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class ReduceEnglishFilter {
   /**
@@ -73,8 +73,7 @@ export class ReduceEnglishFilter {
    */
   constructor(env) {
     const config = env.engine.schema.config
-    const namespace = env.namespace.replace(/^\*/, '')
-
+    const namespace = env.namespace
     indexToInsertPostponees = config.getInt(namespace + '/idx') || 2
 
     // 模式
@@ -101,28 +100,31 @@ export class ReduceEnglishFilter {
 
   /**
    * Filter candidates to postpond some short English words
-   * @param {Array<Candidate>} candidates - The candidates to re-order
+   * @param {CandidateIterator} iter - The iterator of the candidates to re-order
    * @param {Environment} env - The Rime environment
-   * @returns {Array<Candidate>} Re-ordered candidates
+   * @returns {Generator<Candidate, CandidateIterator | void>} Re-ordered candidates
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     const code = env.engine.context.input
-    if (!words.has(code)) return candidates
+    if (!words.has(code)) {
+      return iter
+    }
 
-    const ret = []
     const candidatesToPostpond = [] // 要降低的候选词
-    candidates.forEach((candidate, idx) => {
+    // 只查找前面 120 个候选词，提高性能
+    for (let idx = 0, candidate; idx < 120 && (candidate = iter.next()); idx++) {
       if (idx >= indexToInsertPostponees + candidatesToPostpond.length - 1) {
         // 插入位置之后的候选词，不需要处理，直接加入 candidatesToPostpond
         candidatesToPostpond.push(candidate)
       } else if (candidate.preedit?.includes(' ') || !/^[a-zA-Z]+$/.test(candidate.text)) {
         // 包含空格或者不是纯英文词，保持原位置
-        ret.push(candidate)
+        yield candidate
       } else {
         // 找到要降低的英文词，加入 candidatesToPostpond 以降低位置
         candidatesToPostpond.push(candidate)
       }
-    })
-    return [...ret, ...candidatesToPostpond]
+    }
+    yield* candidatesToPostpond
+    return iter
   }
 }

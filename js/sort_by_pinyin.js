@@ -3,7 +3,7 @@ import { unaccent } from './lib/string.js'
 /**
  * 根据候选项的拼音和输入字符的匹配程度，重新排序候选项。
  *  仅对带拼音的候选项进行就地重排，其它类型的候选项（长句子、emoji、英语单词等）保持原顺序。
- * @implements {Filter}
+ * @implements {FastFilter}
  * @author https://github.com/HuangJian
  */
 export class SortCandidatesByPinyinFilter {
@@ -38,11 +38,11 @@ export class SortCandidatesByPinyinFilter {
 
   /**
    * Sort the candidates by pinyin
-   * @param {Array<Candidate>} candidates - Array of candidates to sort
+   * @param {CandidateIterator} iter - The iterator of the candidates to sort
    * @param {Environment} env - The Rime environment
-   * @returns {Array<Candidate>} The sorted candidates
+   * @returns {Generator<Candidate, CandidateIterator | void>} The sorted candidates
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     const userPhrases = []
     const userPhrasesIndices = []
     const candidatesWithPinyin = []
@@ -50,34 +50,38 @@ export class SortCandidatesByPinyinFilter {
 
     const input = env.engine.context.input.replace(/\/.*$/, '') // 去掉 /py /en 等快捷键
 
-    const size = candidates.length > this.#topN ? this.#topN : candidates.length
-    candidates.slice(0, size).forEach((candidate, idx) => {
+    const fetched = []
+    // 只查找前面 topN 个候选词，提高性能
+    for (let idx = 0, candidate; idx < this.#topN && (candidate = iter.next()); idx++) {
+      fetched.push(candidate)
       const pinyin = this.extractPinyin(candidate.comment)?.replaceAll(' ', '')
       if (candidate.type === 'user_phrase') {
-        const weight = this.getWeightByPinyin(pinyin, input, true) + size - idx
+        const weight = this.getWeightByPinyin(pinyin, input, true) + this.#topN - idx
         userPhrasesIndices.push(idx)
         userPhrases.push({ candidate, weight })
       } else if (pinyin) {
-        const weight = this.getWeightByPinyin(pinyin, input, false) + size - idx
+        const weight = this.getWeightByPinyin(pinyin, input, false) + this.#topN - idx
         candidatesWithPinyinIndices.push(idx)
         candidatesWithPinyin.push({ candidate, weight })
       }
-    })
+    }
 
     // 就地重排用户词典的候选词
     userPhrases.sort((a, b) => b.weight - a.weight)
     userPhrasesIndices.forEach((originalIndex, idx) => {
-      candidates[originalIndex] = userPhrases[idx].candidate
+      fetched[originalIndex] = userPhrases[idx].candidate
     })
 
     // 就地重排其它带拼音的候选词
     candidatesWithPinyin.sort((a, b) => b.weight - a.weight)
     candidatesWithPinyinIndices.forEach((originalIndex, idx) => {
-      candidates[originalIndex] = candidatesWithPinyin[idx].candidate
+      fetched[originalIndex] = candidatesWithPinyin[idx].candidate
     })
 
-    return candidates
+    yield* fetched
+    return iter
   }
+
   /**
    * 计算候选项的权重分数，用于智能排序。
    *

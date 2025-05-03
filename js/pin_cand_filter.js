@@ -54,7 +54,7 @@ const pinMap = new Map()
 
 /**
  * 置顶候选项过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class PinCandidatesFilter {
   /**
@@ -157,19 +157,18 @@ export class PinCandidatesFilter {
   }
   /**
    * Filter candidates to pin the matched ones to the top
-   * @param {Array<Candidate>} candidates - Array of candidates to re-order
+   * @param {CandidateIterator} iter - The iterator of the candidates to re-order
    * @param {Environment} env - The Rime environment
-   * @returns {Array<Candidate>} The re-ordered candidates
+   * @returns {Generator<Candidate, CandidateIterator | void>} The re-ordered candidates
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     // 当前输入框的 preedit，未经过方案 translator/preedit_format 转换
     // 输入 nihaoshij 则为 nihaoshij，选择了「你好」后变成 你好shij
-
     const fullPreedit = env.engine.context.preedit.text // 输入码
-    const letterOnlyPreedit = fullPreedit.replace(/[^a-zA-Z]/g, '')
     // 非汉字部分的 preedit，如 shij
+    const letterOnlyPreedit = fullPreedit.replace(/[^a-zA-Z]/g, '')
     if (pinMap.size === 0 || letterOnlyPreedit.length === 0) {
-      return candidates
+      return iter
     }
 
     /*
@@ -192,25 +191,24 @@ export class PinCandidatesFilter {
     */
 
     // 用 pined 和 others 调整顺序，找齐后先遍历 pined 再遍历 others
-    const yields = [] // 直接 yield 的候选项
     const pinedHolder = [] // 提升的候选项: Array<{text:string, candidate:Candidate}>
     const others = [] // 其余候选项
     let pinedSize = 0
-    let i = 0
-    for (; i < candidates.length; i++) {
-      const candidate = candidates[i]
+    for (let i = 0, candidate; (candidate = iter.next()); i++) {
       const preedit = candidate.preedit.replaceAll(' ', '') // 对比去掉空格的 cand.preedit
       const matchingWords = pinMap.get(preedit)
 
       if (!matchingWords) {
-        // 当前候选项无须排序，直接 yield 并结束循环
-        // 当前候选项正在排序，例如要置顶某个 `hao`，但从 `hao` 查到 `ha` 了还没找齐，不能直接 yield，要先输出 pined 和 others 中的 `hao`
         if (letterOnlyPreedit === preedit) {
-          yields.push(candidate)
+          // 当前候选项无须排序，直接 yield 并结束循环
+          yield candidate
+          break
         } else {
+          // 当前候选项正在排序，例如要置顶某个 `hao`，但从 `hao` 查到 `ha` 了还没找齐，不能直接 yield，
+          // 要先输出 pined 和 others 中的 `hao`
           others.push(candidate)
+          continue
         }
-        break
       }
 
       addPlaceHoldersToPinedHolder(pinedHolder, matchingWords)
@@ -230,9 +228,10 @@ export class PinCandidatesFilter {
       }
     }
 
-    const pinedCandidates = pinedHolder.map((it) => it.candidate).filter((it) => it)
-    // yield pined others 及后续的候选项
-    return [...yields, ...pinedCandidates, ...others, ...candidates.slice(i + 1)]
+    const pins = pinedHolder.map((it) => it.candidate).filter((it) => it)
+    yield* pins
+    yield* others
+    return iter
   }
 }
 /**

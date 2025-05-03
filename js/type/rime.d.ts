@@ -496,6 +496,17 @@ interface Candidate {
 }
 
 /**
+ * Represents a candidate iterator
+ * @namespace CandidateIterator
+ */
+interface CandidateIterator {
+  /**
+   * Get the next candidate or null if at the end
+   */
+  next(): Candidate | null
+}
+
+/**
  * Options for parsing text files
  * @namespace ParseTextFileOptions
  */
@@ -760,19 +771,39 @@ declare class Translator extends Module {
  */
 declare class Filter extends Module {
   /**
+   * Check if the filter is applicable in the current context
+   * @param env - The runtime environment
+   * @returns {boolean} True if the filter is applicable
+   */
+  isApplicable?(env: Environment): boolean
+
+  /**
    * Apply filtering to a list of candidates
    * @param candidates - Array of candidates to filter
    * @param env - The runtime environment
    * @returns {Array<Candidate>} Filtered array of candidates
    */
   filter(candidates: Array<Candidate>, env: Environment): Array<Candidate>
+}
 
+/**
+ * Represents a Rime filter module for processing candidates fastly with a candidate iterator
+ * @namespace FastFilter
+ */
+declare class FastFilter extends Module {
   /**
    * Check if the filter is applicable in the current context
    * @param env - The runtime environment
    * @returns {boolean} True if the filter is applicable
    */
   isApplicable?(env: Environment): boolean
+  /**
+   * Apply filtering to the candidates accessible through the iterator
+   * @param iterator - The candidate iterator
+   * @param env - The runtime environment
+   * @returns {Generator<Candidate, CandidateIterator | void>} Generator yielding filtered candidates
+   */
+  *filter(iterator: CandidateIterator, env: Environment): Generator<Candidate, CandidateIterator | void>
 }
 
 /**

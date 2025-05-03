@@ -48,28 +48,26 @@ var PinCandidatesFilter = class {
     const fullPreedit = env.engine.context.preedit.text
     return fullPreedit.replace(/[^a-zA-Z]/g, '').length > 0
   }
-  filter(candidates, env) {
+  *filter(iter, env) {
     const fullPreedit = env.engine.context.preedit.text
     const letterOnlyPreedit = fullPreedit.replace(/[^a-zA-Z]/g, '')
     if (pinMap.size === 0 || letterOnlyPreedit.length === 0) {
-      return candidates
+      return iter
     }
-    const yields = []
     const pinedHolder = []
     const others = []
     let pinedSize = 0
-    let i = 0
-    for (; i < candidates.length; i++) {
-      const candidate = candidates[i]
+    for (let i = 0, candidate; (candidate = iter.next()); i++) {
       const preedit = candidate.preedit.replaceAll(' ', '')
       const matchingWords = pinMap.get(preedit)
       if (!matchingWords) {
         if (letterOnlyPreedit === preedit) {
-          yields.push(candidate)
+          yield candidate
+          break
         } else {
           others.push(candidate)
+          continue
         }
-        break
       }
       addPlaceHoldersToPinedHolder(pinedHolder, matchingWords)
       const itemToPin = pinedHolder.find((it) => it.text === candidate.text)
@@ -84,8 +82,10 @@ var PinCandidatesFilter = class {
         break
       }
     }
-    const pinedCandidates = pinedHolder.map((it) => it.candidate).filter((it) => it)
-    return [...yields, ...pinedCandidates, ...others, ...candidates.slice(i + 1)]
+    const pins = pinedHolder.map((it) => it.candidate).filter((it) => it)
+    yield* pins
+    yield* others
+    return iter
   }
 }
 function addPlaceHoldersToPinedHolder(pinedHolder, words) {

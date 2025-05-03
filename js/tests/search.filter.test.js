@@ -4,6 +4,7 @@
 
 import { SearchFilter } from '../search.filter.js'
 import { assert, assertEquals, totalTests, passedTests } from './testutil.js'
+import { makeIterator, getGeneratorYieldValues } from './generator.helper.js'
 
 // Define a dummy Candidate constructor for testing
 globalThis.Candidate = function (type, start, end, text, comment, quality) {
@@ -109,7 +110,8 @@ console.log('---------------------------------------')
 // Test 2: Test basic filtering without conductor
 env.engine.context.input = 'zhong'
 let candidates = [new Candidate('py', 0, 4, '测', ''), new Candidate('py', 0, 4, '中', '')]
-let filtered = instance.filter(candidates, env)
+let generator = instance.filter(makeIterator(candidates), env)
+let filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered, candidates, 'filter: should return original candidates when no conductor')
 console.log('Test 2: Basic filtering without conductor tests passed')
 console.log('---------------------------------------')
@@ -117,7 +119,8 @@ console.log('---------------------------------------')
 // Test 3: Test filtering with conductor and matching code
 env.engine.context.input = 'z`zhong'
 candidates = [new Candidate('py', 0, 4, '测', ''), new Candidate('py', 0, 4, '中', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '中', 'filter: should prioritize matched character')
 console.log('Test 3: Filtering with conductor tests passed')
 console.log('---------------------------------------')
@@ -125,7 +128,8 @@ console.log('---------------------------------------')
 // Test 4: Test filtering with conductor and non-matching code
 env.engine.context.input = 'z`ce'
 candidates = [new Candidate('py', 0, 4, '测', ''), new Candidate('py', 0, 4, '中', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '测', 'filter: should prioritize matched character')
 console.log('Test 4: Filtering with non-matching code tests passed')
 console.log('---------------------------------------')
@@ -133,7 +137,8 @@ console.log('---------------------------------------')
 // Test 5: Test filtering with conductor at start
 env.engine.context.input = '`zhong'
 candidates = [new Candidate('py', 0, 4, '测', ''), new Candidate('py', 0, 4, '中', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered, candidates, 'filter: should return original candidates when conductor at start')
 console.log('Test 5: Filtering with conductor at start tests passed')
 console.log('---------------------------------------')
@@ -141,7 +146,8 @@ console.log('---------------------------------------')
 // Test 6: Test listener connection
 env.engine.context.input = 'test`jin'
 candidates = [new Candidate('py', 0, 4, '𬭸', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '𬭸', 'filter: should connect listener and handle selection')
 console.log('Test 6: Listener connection tests passed')
 console.log('---------------------------------------')
@@ -149,7 +155,8 @@ console.log('---------------------------------------')
 // Test 7: Test prefix search with multiple matches
 env.engine.context.input = 'test`sh'
 candidates = [new Candidate('py', 0, 4, '试', ''), new Candidate('py', 0, 4, '中', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 assertEquals(filtered[0].text, '试', 'filter: should match prefix search correctly')
 console.log('Test 7: Prefix search tests passed')
 console.log('---------------------------------------')
@@ -196,12 +203,14 @@ env2.engine.context.selectNotifier = {
 // First session filter operation
 env.engine.context.input = 'test`jin'
 candidates = [new Candidate('py', 0, 4, '𬭸', '')]
-filtered = instance.filter(candidates, env)
+generator = instance.filter(makeIterator(candidates), env)
+filtered = getGeneratorYieldValues(generator)
 
 // Second session filter operation
 env2.engine.context.input = 'other`jin'
 candidates = [new Candidate('py', 0, 4, '𬭸', '')]
-filtered = instance.filter(candidates, env2)
+generator = instance.filter(makeIterator(candidates), env2)
+filtered = getGeneratorYieldValues(generator)
 
 // Verify env2 connection is established
 assert(env2Connected && env2Callback, 'filter: env2 notifier should be properly connected')
@@ -212,7 +221,8 @@ isEnv1NotifierConnected = false
 // Third session filter operation should maintain env2 connection
 env2.engine.context.input = 'final`jin'
 candidates = [new Candidate('py', 0, 4, '𬭸', '')]
-filtered = instance.filter(candidates, env2)
+generator = instance.filter(makeIterator(candidates), env2)
+filtered = getGeneratorYieldValues(generator)
 
 // Verify env2 connection is still active
 assert(env2Connected && env2Callback, 'filter: env2 notifier should remain connected after env1 disconnect')

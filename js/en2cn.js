@@ -8,7 +8,7 @@ function formatInfo(info) {
 
 /**
  * 英译汉过滤器
- * @implements {Filter}
+ * @implements {FastFilter}
  */
 export class En2CnFilter {
   /**
@@ -62,32 +62,34 @@ export class En2CnFilter {
 
   /**
    * 候选项过滤器主函数
-   * @param {Array<Candidate>} candidates - 候选项数组
+   * @param {CandidateIterator} iter - 候选项迭代器，用于遍历候选项
    * @param {Environment} env - 环境对象，包含引擎上下文等信息
-   * @returns {Array<Candidate>} 处理后的候选项数组
+   * @returns {Generator<Candidate, CandidateIterator | void>} 过滤后的候选项迭代器
    * @description 为英文候选项添加中文释义，并处理中文翻译的快捷选择功能
    */
-  filter(candidates, env) {
+  *filter(iter, env) {
     const existingWords = new Map()
     // 从候选项中找到最后一个英文单词的位置，将新查找到的单词插入到该位置之后
-    let lastEnglishCandidateIndex =
-      candidates.length === 0
-        ? 0 // 没有任何候选项就从头插入
-        : 5 // 只有中文没有英文候选项，那就插到第五个之后
+    // 只有中文没有英文候选项，那就插到第五个之后
+    let lastEnglishCandidateIndex = 5
 
-    // 先为所有英文候选项加上中文释义
-    candidates.forEach((it, idx) => {
-      const text = it.text.toLowerCase()
-      if (!isPureEnglish(text)) return
+    const processed = [] // 最多处理前 120 个候选词，提高性能
+    for (let idx = 0, candidate; idx < 120 && (candidate = iter.next()); idx++) {
+      processed.push(candidate)
+      const text = candidate.text.toLowerCase()
+      if (!isPureEnglish(text)) {
+        continue
+      }
 
       existingWords.set(text, true)
       lastEnglishCandidateIndex = idx
 
+      // 先为所有英文候选项加上中文释义
       const info = this.levelDb.find(text)
       if (info) {
-        it.comment = formatInfo(info)
+        candidate.comment = formatInfo(info)
       }
-    })
+    }
 
     // 再从英文词典中查找匹配该前缀的单词，添加到候选项中
     const prefix = env.engine.context.input.toLowerCase()
@@ -98,11 +100,11 @@ export class En2CnFilter {
         if (existingWords.has(it.text)) return
 
         const candidate = new Candidate('en', 0, prefix.length, it.text, formatInfo(it.info))
-        candidates.splice(lastEnglishCandidateIndex, 0, candidate)
+        processed.splice(lastEnglishCandidateIndex, 0, candidate)
         lastEnglishCandidateIndex++
       })
     }
-
-    return candidates
+    yield* processed
+    return iter
   }
 }
