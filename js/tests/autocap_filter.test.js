@@ -30,6 +30,7 @@ console.log('---------------------------------------')
 
 // Test 2: Single character input should not be transformed
 env.engine.context.input = 'h'
+assertEquals(filterInstance.isApplicable(env), false, 'isApplicable: single character input should not be transformed')
 let candidates = [new Candidate('abc', 0, 1, 'hello', '')]
 let generator = filterInstance.filter(makeIterator(candidates), env)
 let result = getGeneratorYieldValues(generator)
@@ -38,6 +39,7 @@ console.log('---------------------------------------')
 
 // Test 3: Input starting with lowercase should not transform
 env.engine.context.input = 'he'
+assertEquals(filterInstance.isApplicable(env), false, 'isApplicable: lowercase input should not be transformed')
 candidates = [new Candidate('abc', 0, 2, 'hello', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
@@ -46,6 +48,7 @@ console.log('---------------------------------------')
 
 // Test 4: First letter capitalization
 env.engine.context.input = 'He'
+assertEquals(filterInstance.isApplicable(env), true, 'isApplicable: first letter capitalization should be transformed')
 candidates = [new Candidate('abc', 0, 2, 'hello', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
@@ -54,6 +57,7 @@ console.log('---------------------------------------')
 
 // Test 5: All caps when input has 2+ uppercase letters
 env.engine.context.input = 'HEl'
+assertEquals(filterInstance.isApplicable(env), true, 'isApplicable: should transform to all caps when input has 2+ uppercase letters')
 candidates = [new Candidate('abc', 0, 3, 'hello', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
@@ -62,14 +66,15 @@ console.log('---------------------------------------')
 
 // Test 6: Input with punctuation
 env.engine.context.input = 'He,'
+assertEquals(filterInstance.isApplicable(env), true, 'isApplicable: should handle punctuation correctly')
 candidates = [new Candidate('abc', 0, 3, 'hello,world', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
 assertEquals(result[0].text, 'Hello,world', 'filter: should handle punctuation correctly')
 console.log('---------------------------------------')
 
-// Test 7: Input with spaces
-env.engine.context.input = 'He '
+// Test 7: Candidate text with spaces
+env.engine.context.input = 'He'
 candidates = [new Candidate('abc', 0, 3, 'hello world', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
@@ -78,6 +83,7 @@ console.log('---------------------------------------')
 
 // Test 8: Non-alphabetic characters
 env.engine.context.input = 'He'
+assertEquals(filterInstance.isApplicable(env), true, 'isApplicable: should handle non-alphabetic characters correctly')
 candidates = [new Candidate('abc', 0, 2, 'hello123', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)
@@ -86,6 +92,7 @@ console.log('---------------------------------------')
 
 // Test 9: Special Unicode characters
 env.engine.context.input = 'He'
+assertEquals(filterInstance.isApplicable(env), true, 'isApplicable: should handle special Unicode characters correctly')
 candidates = [new Candidate('abc', 0, 2, 'hello世界', '')]
 generator = filterInstance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(generator)

@@ -30,7 +30,7 @@ export class AutoCapFilter {
   isApplicable(env) {
     // 码长为 1 或 输入码首位为小写字母或标点，不转换：
     const input = env.engine.context.input
-    return input.length === 1 || regPunctuationOrLowerAlphabetLeading.test(input)
+    return input.length > 1 && !regPunctuationOrLowerAlphabetLeading.test(input)
   }
 
   /**

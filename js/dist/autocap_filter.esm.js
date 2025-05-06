@@ -7,7 +7,7 @@ var AutoCapFilter = class {
   }
   isApplicable(env) {
     const input = env.engine.context.input
-    return input.length === 1 || regPunctuationOrLowerAlphabetLeading.test(input)
+    return input.length > 1 && !regPunctuationOrLowerAlphabetLeading.test(input)
   }
   *filter(iter, env) {
     const code = env.engine.context.input
