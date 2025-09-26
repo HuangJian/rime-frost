@@ -1,16 +1,16 @@
-# 个性化扩展
-- [x] 基于 [librime-qjs](https://github.com/HuangJian/librime-qjs)，使用 [JavaScript](./js) 重写把所有 Lua 插件 ，并补充[单元测试](./js/tests/)。
+# 个性化扩展【白霜拼音】
+- [x] 基于 [librime-qjs](https://github.com/HuangJian/librime-qjs)，使用 [JavaScript](./js) 重写所有 Lua 插件 ，并补充[单元测试](./js/tests/)。
 - [x] [汉译英](./js/cn2en_pinyin.js)：候选的汉语字词，在注解里显示它们的带调拼音，及英语翻译
 - [x] [英译汉](./js/en2cn.js)：候选的英文单词，在注解里显示它们的简单中文翻译
 - [x] [符号配对](./js/pairs.js)：自动符号配对，并移动光标到中间
 - [x] [斜杠符号](./js/slash.js)：多次按 <kbd>/</kbd> 键，切换选中其候选符号
 - [x] [帮助菜单](./js/help_menu.js)：输入 `/help` 显示帮助菜单
 - [x] [快捷指令](./js/shortcut.js)：输入 `/deploy` 重新部署，输入 `/screenshot` 启动截屏
-- [x] [拼音上屏](./js/cn2en_pinyin.js)（例：`pinyin/py1` 立即上屏 `pīn yīn`）
-- [x] [汉译英上屏](./js/cn2en_pinyin.js) （例：`shuxue/en` 立即上屏 `mathematics`）
+- [x] [拼音候选](./js/cn2en_pinyin.js)（例：`pinyin/py` 候选 `pīn yīn`，按序号选择上屏）
+- [x] [汉译英候选](./js/cn2en_pinyin.js) （例：`shuxue/en1` 候选 `mathematics`，按序号选择上屏）
   - '/e' 开启翻译上屏，在注解里提示每个词语英语翻译上屏的快捷键
   - '/en' 选中第一个汉语候选项的翻译， '/ea' 选中第二个，……
-    - 如果选中项只有唯一翻译，英文只接上屏（例：`shuxue/en` 立即上屏 `mathematics`）
+    - 如果选中项只有唯一翻译，将其置入候选菜单（例：`shuxue/en` 增加候选项 `mathematics`）
     - 如果选中项有多种翻译，把它们拆分开置入候选菜单（例：`shuru/en` 增加候选项 `to import` 和 `to input`）
 - [x] [扩展英文词库](./js/en2cn.js)： 使用 [ecdict](https://github.com/skywind3000/ECDICT) 词库添加候选项。
   - 例：`invi` 候选词由 9 个增加到 24 个，补充 `invidious`、`invincible`、`inviolate` 等

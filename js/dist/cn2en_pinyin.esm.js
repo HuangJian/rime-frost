@@ -113,16 +113,11 @@ function tryPrependOrCommitEnglish(candidates, input, engine) {
     .substring(rightBracketPos + 1)
     .split('/')
     .filter((it) => !it.includes('CL'))
-  if (arr.length === 1) {
-    engine.commitText(arr[0])
-    engine.context.clear()
-  } else {
-    candidates.unshift(pickingItem)
-    const text = pickingItem.text
-    arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('en', 0, inputSize + 2, it, '\u7FFB\u8BD1\u81EA\uFF1A' + text))
-    })
-  }
+  candidates.unshift(pickingItem)
+  const text = pickingItem.text
+  arr.reverse().forEach((it) => {
+    candidates.unshift(new Candidate('en', 0, inputSize + 2, it, '\u7FFB\u8BD1\u81EA\uFF1A' + text))
+  })
 }
 function hintToPickPinyin(candidates, input) {
   if (input.length < 3 || !/\/p.?$/.test(input)) return
@@ -145,17 +140,12 @@ function tryPrependOrCommitPinyin(candidates, input, engine) {
   const pickingItem = candidates.find((it) => it.comment?.startsWith(hintCode))
   if (!pickingItem) return
   const arr = pickingItem.pinyin.split(' ')
-  if (arr.length === 1) {
-    engine.commitText(arr[0])
-    engine.context.clear()
-  } else {
-    candidates.unshift(pickingItem)
-    arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('py', 0, inputSize + 2, it, '\u62FC\u97F3\uFF1A' + pickingItem.text))
-    })
-    candidates.unshift(
-      new Candidate('py', 0, inputSize + 2, pickingItem.pinyin, '\u62FC\u97F3\uFF1A' + pickingItem.text),
-    )
-  }
+  candidates.unshift(pickingItem)
+  arr.reverse().forEach((it) => {
+    candidates.unshift(new Candidate('py', 0, inputSize + 2, it, '\u62FC\u97F3\uFF1A' + pickingItem.text))
+  })
+  candidates.unshift(
+    new Candidate('py', 0, inputSize + 2, pickingItem.pinyin, '\u62FC\u97F3\uFF1A' + pickingItem.text),
+  )
 }
 export { Cn2EnFilter }

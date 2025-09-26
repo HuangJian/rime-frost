@@ -231,18 +231,12 @@ function tryPrependOrCommitEnglish(candidates, input, engine) {
     .split('/')
     .filter((it) => !it.includes('CL')) // CL 表示量词，不候选
 
-  if (arr.length === 1) {
-    // 唯一翻译，直接上屏
-    engine.commitText(arr[0])
-    engine.context.clear()
-  } else {
-    // 多种翻译，插入候选
-    candidates.unshift(pickingItem) // 把对应的汉语候选项移到最上面
-    const text = pickingItem.text
-    arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('en', 0, inputSize + 2, it, '翻译自：' + text))
-    })
-  }
+  // 把翻译插入候选
+  candidates.unshift(pickingItem) // 把对应的汉语候选项移到最上面
+  const text = pickingItem.text
+  arr.reverse().forEach((it) => {
+    candidates.unshift(new Candidate('en', 0, inputSize + 2, it, '翻译自：' + text))
+  })
 }
 
 /**
@@ -285,16 +279,10 @@ function tryPrependOrCommitPinyin(candidates, input, engine) {
   if (!pickingItem) return
 
   const arr = pickingItem.pinyin.split(' ')
-  if (arr.length === 1) {
-    // Single pinyin, commit directly
-    engine.commitText(arr[0])
-    engine.context.clear()
-  } else {
-    // Multiple pinyin syllables, insert as candidates
-    candidates.unshift(pickingItem) // Move the corresponding Chinese candidate to the top
-    arr.reverse().forEach((it) => {
-      candidates.unshift(new Candidate('py', 0, inputSize + 2, it, '拼音：' + pickingItem.text))
-    })
-    candidates.unshift(new Candidate('py', 0, inputSize + 2, pickingItem.pinyin, '拼音：' + pickingItem.text))
-  }
+  // insert the pinyin syllables to candidates
+  candidates.unshift(pickingItem) // Move the corresponding Chinese candidate to the top
+  arr.reverse().forEach((it) => {
+    candidates.unshift(new Candidate('py', 0, inputSize + 2, it, '拼音：' + pickingItem.text))
+  })
+  candidates.unshift(new Candidate('py', 0, inputSize + 2, pickingItem.pinyin, '拼音：' + pickingItem.text))
 }

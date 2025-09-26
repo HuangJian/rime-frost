@@ -60,8 +60,6 @@ class LevelDb {
   }
 }
 
-let committedText = null
-
 // Create mock environment
 const env = {
   testing: true,
@@ -71,10 +69,6 @@ const env = {
   engine: {
     context: {
       input: '',
-      clear: function () {},
-    },
-    commitText: function (text) {
-      committedText = text
     },
   },
   fileExists: (path) => false,
@@ -106,13 +100,13 @@ assertEquals(result[0].comment.startsWith('⇖ʸ'), true, 'filter: added hint co
 console.log('Test 3: Pinyin selection feature tests passed')
 console.log('---------------------------------------')
 
-// Test 4: Test commit pinyin function immediately
+// Test 4: Test adding pinyin to candidates
 candidates = [new Candidate('py', 0, 4, '中', ''), new Candidate('py', 0, 4, '中国', '')]
 env.engine.context.input = 'zhong/py'
 filtered = instance.filter(makeIterator(candidates), env)
 result = getGeneratorYieldValues(filtered)
-assertEquals(committedText, 'zhōng', 'commit correct pinyin immediately')
-console.log('Test 4: commit pinyin immediately function tests passed')
+assertEquals(result[1].text, 'zhōng', 'The second candidate should be the pinyin for 中')
+console.log('Test 4: add pinyin to candidate list function tests passed')
 console.log('---------------------------------------')
 
 // Test 5: Test English translation feature
@@ -124,14 +118,15 @@ assertEquals(result[1].comment.startsWith('⇖ᵃ'), true, 'filter: added hint c
 console.log('Test 5: English translation feature tests passed')
 console.log('---------------------------------------')
 
-// Test 6: Test commit english function immediately
+// Test 6: Test adding english to candidates
 env.engine.context.input = 'zhongguo/e'
 candidates = [new Candidate('py', 0, 4, '中国', '')]
 filtered = instance.filter(makeIterator(candidates), env)
 env.engine.context.input = 'zhong/en'
 filtered = instance.filter(makeIterator(getGeneratorYieldValues(filtered)), env)
-assertEquals(committedText, 'China', 'commit correct English immediately')
-console.log('Test 6: commit English immediately function tests passed')
+result = getGeneratorYieldValues(filtered)
+assertEquals(result[0].text, 'China', 'The second candidate should be the english translation for 中国')
+console.log('Test 6: add english to candidates tests passed')
 console.log('---------------------------------------')
 
 // Print test summary
