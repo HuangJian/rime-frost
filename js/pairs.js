@@ -81,7 +81,9 @@ export class PairsProcessor {
         env.engine.commitText(symbol + pairedText)
         context.clear()
 
-        moveCursorToLeftForMacOS(env)
+        if (env.os.name === 'macOS') {
+          moveCursorToLeftForMacOS(env)
+        }
 
         return 'kAccepted'
       }

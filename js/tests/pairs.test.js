@@ -16,6 +16,7 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
 let lastCommitText = ''
 // Create a dummy env object with popen and engine context
 const env = {
+  os: { name: 'macOS' },
   popen: (command) => null,
   engine: {
     commitText: (text) => lastCommitText = text,
