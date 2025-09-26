@@ -34351,7 +34351,11 @@ use_preset_vocabulary: false
 集合石前	ji he shi qian	0
 集合石召唤门	ji he shi zhao huan men	0
 极化电磁球	ji hua dian ci qiu	0
+集换	ji huan	11
 集换牌	ji huan pai	0
+集换式	ji huan shi	9
+集换式卡牌	ji huan shi ka pai	0
+集换式卡牌游戏	ji huan shi ka pai you xi	0
 激活雕文	ji huo diao wen	0
 激活防御	ji huo fang yu	0
 激活净化器	ji huo jing hua qi	0
@@ -38075,7 +38079,7 @@ use_preset_vocabulary: false
 克隆姆	ke long mu	0
 克隆软浆怪	ke long ruan jiang guai	0
 克隆软泥怪	ke long ruan ni guai	0
-克鲁	ke lu	449
+克鲁	ke lu	44
 克鲁本	ke lu ben	0
 科卢尔传送门	ke lu er chuan song men	0
 克鲁格什	ke lu ge shen	0
@@ -57378,6 +57382,7 @@ use_preset_vocabulary: false
 星火外衣	xing huo wai yi	0
 星火腰带	xing huo yao dai	0
 星击	xing ji	1
+星界边境	xing jie bian jing	0
 星界宝珠	xing jie bao zhu	0
 星界财团	xing jie cai tuan	15
 星界财团板甲护腿	xing jie cai tuan ban jia hu tui	0
@@ -69247,6 +69252,7 @@ use_preset_vocabulary: false
 摆摊操作	bai tan cao zuo	0
 摆摊系统	bai tan xi tong	1
 白陶摆饰	bai tao bai shi	0
+陶泥	bai tao ni	18
 白陶泥	bai tao ni	0
 白陶紫金盂	bai tao zi jin yu	0
 白犀灵御	bai xi ling yu	0
