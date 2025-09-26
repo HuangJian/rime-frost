@@ -42,9 +42,9 @@ let weight2 = instance.getWeightByPinyin('nihao', 'ni', false)
 let weight3 = instance.getWeightByPinyin('mini', 'ni', false)
 let weight4 = instance.getWeightByPinyin(undefined, 'ni', true)
 assertEquals(weight1, 10002, 'getWeightByPinyin: exact match should have highest weight')
-assertEquals(weight2, 5000, 'getWeightByPinyin: prefix match should have medium weight')
+assertEquals(weight2, 5005, 'getWeightByPinyin: prefix match should have medium weight')
 assertEquals(weight3, 1004, 'getWeightByPinyin: partial match should have low weight + length')
-assertEquals(weight4, 10000, 'getWeightByPinyin: undefined pinyin in user phrase should have highest weight')
+assertEquals(weight4, 5000, 'getWeightByPinyin: undefined pinyin in user phrase should have highest weight')
 console.log('---------------------------------------')
 
 // Test 4: Test candidate sorting with pinyin

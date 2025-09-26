@@ -9,6 +9,7 @@ export function assert(condition, message) {
   } else {
     log('✗ ' + message, 'red')
     log('  Expected true, but got false', 'red')
+    throw new Error('Assertion failed: ' + message)
   }
 }
 
@@ -23,6 +24,7 @@ export function assertEquals(actual, expected, message) {
     log('✗ ' + message, 'red')
     log('  Expected: ' + expectedStr, 'cyan')
     log('  Actual:   ' + actualStr, 'magenta')
+    throw new Error(`Assertion failed: ${message}\n  Expected: ${expectedStr}\n  Actual:   ${actualStr}`)
   }
 }
 
