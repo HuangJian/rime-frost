@@ -49,6 +49,9 @@ export class SortCandidatesByPinyinFilter {
     const candidatesWithPinyinIndices = []
 
     const input = env.engine.context.input.replace(/\/.*$/, '') // 去掉 /py /en 等快捷键
+    const start = env.engine.context.lastSegment?.start ?? 0
+    const end = env.engine.context.lastSegment?.end ?? input.length
+    const segmentInput = env.engine.context.input.slice(start, end) // 仅当前选中分段的拼音输入："xuanzhong|fenduan" => "xuanzhong"
 
     const fetched = []
     // 只查找前面 topN 个候选词，提高性能
@@ -56,11 +59,11 @@ export class SortCandidatesByPinyinFilter {
       fetched.push(candidate)
       const pinyin = this.extractPinyin(candidate.comment)?.replaceAll(' ', '')
       if (candidate.type === 'user_phrase') {
-        const weight = this.getWeightByPinyin(pinyin, input, true) + this.#topN - idx
+        const weight = this.getWeightByPinyin(pinyin, segmentInput, true) + this.#topN - idx
         userPhrasesIndices.push(idx)
         userPhrases.push({ candidate, weight })
       } else if (pinyin) {
-        const weight = this.getWeightByPinyin(pinyin, input, false) + this.#topN - idx
+        const weight = this.getWeightByPinyin(pinyin, segmentInput, false) + this.#topN - idx
         candidatesWithPinyinIndices.push(idx)
         candidatesWithPinyin.push({ candidate, weight })
       }
@@ -90,9 +93,9 @@ export class SortCandidatesByPinyinFilter {
    * @param {boolean} isInUserPhrase - 候选项是否在用户词典中
    * @returns {number} 权重分数，规则如下：
    *    - 拼音完全匹配：+10,000 + 拼音长度
-   *    - 拼音前缀匹配：+5,000
+   *    - 拼音前缀匹配：+5,000 + 拼音长度
    *    - 拼音部分包含：+1,000 + 拼音长度
-   *    - 找不到拼音但在用户词典中：自造词，视为完全匹配 +10,000
+   *    - 找不到拼音但在用户词典中：自造词，视为前缀匹配 +5,000
    *    - 其它情况：0
    */
   getWeightByPinyin(pinyin, input, isInUserPhrase) {
@@ -100,11 +103,12 @@ export class SortCandidatesByPinyinFilter {
       return 10000 + pinyin.length
     }
     if (isInUserPhrase && !pinyin) {
-      return 10000
-    }
-    if (pinyin?.startsWith(input)) {
       return 5000
     }
+    if (pinyin?.startsWith(input)) {
+      return 5000 + pinyin.length
+    }
+    // TODO: 部分包含不实用，应替换为 levenshtein 距离，用于处理模糊音/击键顺序错误/常用词只打声母等情况。
     if (pinyin?.includes(input)) {
       return 1000 + pinyin.length
     }

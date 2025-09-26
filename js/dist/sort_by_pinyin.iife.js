@@ -29,16 +29,19 @@
       const candidatesWithPinyin = []
       const candidatesWithPinyinIndices = []
       const input = env.engine.context.input.replace(/\/.*$/, '')
+      const start = env.engine.context.lastSegment?.start ?? 0
+      const end = env.engine.context.lastSegment?.end ?? input.length
+      const segmentInput = env.engine.context.input.slice(start, end)
       const fetched = []
       for (let idx = 0, candidate; idx < this.#topN && (candidate = iter.next()); idx++) {
         fetched.push(candidate)
         const pinyin = this.extractPinyin(candidate.comment)?.replaceAll(' ', '')
         if (candidate.type === 'user_phrase') {
-          const weight = this.getWeightByPinyin(pinyin, input, true) + this.#topN - idx
+          const weight = this.getWeightByPinyin(pinyin, segmentInput, true) + this.#topN - idx
           userPhrasesIndices.push(idx)
           userPhrases.push({ candidate, weight })
         } else if (pinyin) {
-          const weight = this.getWeightByPinyin(pinyin, input, false) + this.#topN - idx
+          const weight = this.getWeightByPinyin(pinyin, segmentInput, false) + this.#topN - idx
           candidatesWithPinyinIndices.push(idx)
           candidatesWithPinyin.push({ candidate, weight })
         }
@@ -59,10 +62,10 @@
         return 1e4 + pinyin.length
       }
       if (isInUserPhrase && !pinyin) {
-        return 1e4
+        return 5e3
       }
       if (pinyin?.startsWith(input)) {
-        return 5e3
+        return 5e3 + pinyin.length
       }
       if (pinyin?.includes(input)) {
         return 1e3 + pinyin.length
