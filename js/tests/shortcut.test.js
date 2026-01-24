@@ -16,7 +16,7 @@ globalThis.Candidate = function (type, start, end, text, comment, quality) {
 
 // Create a dummy env object with popen and engine context
 const env = {
-  popen: (command) => console.log(`Mock executing command: ${command}`),
+  popen: (command, timeout) => console.log(`Mock executing command: ${command}`),
   engine: {
     context: {
       clear: () => console.log('Mock clearing context'),

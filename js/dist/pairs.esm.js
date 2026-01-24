@@ -133,7 +133,7 @@ function moveCursorToLeftForMacOS(env) {
             key code 123 # Left Arrow
         end tell
     '`
-  env.popen(osascript)
+  env.popen(osascript, 0)
 }
 var pairTable = {
   '`': '`',

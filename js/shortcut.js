@@ -99,7 +99,7 @@ export class Shortcut {
     const matchedShortcut = this.#shortcuts.find((item) => item.input === pickingCandidate.text)
     if (matchedShortcut) {
       // Execute the command
-      env.popen(matchedShortcut.command)
+      env.popen(matchedShortcut.command, 0)
       env.engine.context.clear()
       return 'kAccepted'
     }

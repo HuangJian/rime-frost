@@ -178,7 +178,7 @@
       if (!pickingCandidate) return 'kNoop'
       const matchedShortcut = this.#shortcuts.find((item) => item.input === pickingCandidate.text)
       if (matchedShortcut) {
-        env.popen(matchedShortcut.command)
+        env.popen(matchedShortcut.command, 0)
         env.engine.context.clear()
         return 'kAccepted'
       }

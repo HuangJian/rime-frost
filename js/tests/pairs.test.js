@@ -17,7 +17,7 @@ let lastCommitText = ''
 // Create a dummy env object with popen and engine context
 const env = {
   os: { name: 'macOS' },
-  popen: (command) => null,
+  popen: (command, timeout) => null,
   engine: {
     commitText: (text) => lastCommitText = text,
     context: {

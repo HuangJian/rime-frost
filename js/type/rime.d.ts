@@ -2,7 +2,7 @@
 // Project: Rime QJS Plugin
 // -----------------------------------
 // @author https://github.com/HuangJian
-// @version LIB_RIME_QJS_VERSION
+// @version 1.3.0
 
 /**
  * Represents a keyboard input event
@@ -702,11 +702,16 @@ interface Environment {
 
   /**
    * Execute a shell command and capture its output
-   * @param command - Shell command to execute
-   * @returns {string} Command output
-   * @throws {Error} If command execution fails
+   * @param command - Shell command to execute.
+   *    On macOS and Linux, the command runs in shell directly.
+   *    On Windows, wrap the command with `cmd.exe /c` if shell execution is needed (e.g. `cmd.exe /c echo 12345`)
+   * @param timeout - Max duration in milliseconds to execute the command (default: 1000ms).
+   *    Set to 0 to skip result capture and return empty strings immediately.
+   *    With timeout = 0, it could be used as an application launcher (keep running and never wait/kill it).
+   * @returns {string} Command output on success, empty string on failure or when timeout is 0
+   * @throws {Error} If command is empty, execution fails, or times out
    */
-  popen(command: string): string
+  popen(command: string, timeout?: number): string
 }
 
 /**
